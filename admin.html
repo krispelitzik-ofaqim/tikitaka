@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikiTaka - לוח ניהול</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-fallback" style="display:flex;">
+                    <span class="logo-tiki">Tiki</span>
+                    <span class="logo-taka">Taka</span>
+                </div>
+                <span class="admin-badge">ניהול</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="sidebar-link active" onclick="showTab('dashboard')">
+                    <i class="fas fa-chart-line"></i> דשבורד
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('orders')">
+                    <i class="fas fa-shopping-bag"></i> הזמנות
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('suppliers')">
+                    <i class="fas fa-store"></i> ספקים
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('customers')">
+                    <i class="fas fa-users"></i> לקוחות
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('settings')">
+                    <i class="fas fa-cog"></i> הגדרות
+                </a>
+                <a href="index.html" class="sidebar-link sidebar-back">
+                    <i class="fas fa-arrow-right"></i> חזור לאתר
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Top Bar -->
+            <header class="admin-topbar">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="pageTitle">דשבורד</h1>
+                <div class="topbar-actions">
+                    <span class="admin-user"><i class="fas fa-user-shield"></i> מנהל</span>
+                </div>
+            </header>
+
+            <!-- Dashboard Tab -->
+            <div id="tab-dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#C41E2F;">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="totalOrders">0</h3>
+                            <p>סה"כ הזמנות</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#28a745;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="deliveredOrders">0</h3>
+                            <p>נמסרו</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#ffc107;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="pendingOrders">0</h3>
+                            <p>ממתינות</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#D4A843;">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="totalSuppliers">0</h3>
+                            <p>ספקים פעילים</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2><i class="fas fa-clock"></i> הזמנות אחרונות</h2>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>מספר</th>
+                                    <th>לקוח</th>
+                                    <th>סוג</th>
+                                    <th>כתובת</th>
+                                    <th>סטטוס</th>
+                                    <th>פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentOrdersTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="tab-orders" class="tab-content">
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-shopping-bag"></i> כל ההזמנות</h2>
+                        <div class="filter-group">
+                            <select id="statusFilter" onchange="filterOrders()">
+                                <option value="all">כל הסטטוסים</option>
+                                <option value="pending">ממתין</option>
+                                <option value="confirmed">אושר</option>
+                                <option value="picked_up">נאסף</option>
+                                <option value="on_the_way">בדרך</option>
+                                <option value="delivered">נמסר</option>
+                                <option value="cancelled">בוטל</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>מספר</th>
+                                    <th>לקוח</th>
+                                    <th>טלפון</th>
+                                    <th>סוג</th>
+                                    <th>איסוף</th>
+                                    <th>משלוח</th>
+                                    <th>סטטוס</th>
+                                    <th>תאריך</th>
+                                    <th>פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allOrdersTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suppliers Tab -->
+            <div id="tab-suppliers" class="tab-content">
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-store"></i> ספקים</h2>
+                    </div>
+                    <div class="suppliers-grid" id="suppliersGrid">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Tab -->
+            <div id="tab-customers" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-users"></i> לקוחות</h2>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>שם</th>
+                                    <th>טלפון</th>
+                                    <th>אימייל</th>
+                                    <th>הזמנות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-cog"></i> הגדרות</h2>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label>שם העסק</label>
+                            <input type="text" value="TikiTaka Deliveries">
+                        </div>
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="text" value="08-000-0000">
+                        </div>
+                        <div class="form-group">
+                            <label>אימייל</label>
+                            <input type="email" value="info@tikitaka.co.il">
+                        </div>
+                        <div class="form-group">
+                            <label>כתובת</label>
+                            <input type="text" value="אופקים, ישראל">
+                        </div>
+                        <button class="btn btn-primary" onclick="alert('ההגדרות נשמרו!')">
+                            <i class="fas fa-save"></i> שמור הגדרות
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer View Tab -->
+            <div id="tab-customerView" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-eye"></i> צפייה בממשק לקוח</h2>
+                    <div class="preview-frame-container">
+                        <div class="preview-controls">
+                            <button class="preview-btn active" onclick="setPreviewSize('mobile')">
+                                <i class="fas fa-mobile-alt"></i> נייד
+                            </button>
+                            <button class="preview-btn" onclick="setPreviewSize('tablet')">
+                                <i class="fas fa-tablet-alt"></i> אייפד
+                            </button>
+                            <button class="preview-btn" onclick="setPreviewSize('desktop')">
+                                <i class="fas fa-desktop"></i> מחשב
+                            </button>
+                        </div>
+                        <div class="preview-wrapper" id="previewWrapper">
+                            <iframe src="index.html" id="previewFrame" class="preview-frame mobile"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikiTaka - כניסת ספקים</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/suppliers.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <div class="logo-fallback" style="display:flex;">
+                    <span class="logo-tiki">Tiki</span>
+                    <span class="logo-taka">Taka</span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">ראשי</a>
+                <a href="suppliers.html" class="nav-link active">כניסת ספקים</a>
+                <a href="institutions.html" class="nav-link">כניסת מוסדות</a>
+                <a href="admin.html" class="nav-link nav-admin">לוח ניהול</a>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html" class="mobile-link">ראשי</a>
+            <a href="suppliers.html" class="mobile-link">כניסת ספקים</a>
+            <a href="institutions.html" class="mobile-link">כניסת מוסדות</a>
+            <a href="admin.html" class="mobile-link">לוח ניהול</a>
+        </div>
+    </nav>
+
+    <div class="supplier-portal">
+        <!-- Supplier Login -->
+        <div class="supplier-login" id="supplierLogin">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h2>כניסת ספקים</h2>
+                    <p>הכנס את פרטי הספק שלך</p>
+                </div>
+                <form onsubmit="supplierLogin(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> טלפון</label>
+                        <input type="tel" id="supplierPhone" required placeholder="050-0000000">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large" style="width:100%;justify-content:center;">
+                        <i class="fas fa-sign-in-alt"></i> כניסה
+                    </button>
+                </form>
+                <div class="login-divider">
+                    <span>ספק חדש?</span>
+                </div>
+                <button class="btn btn-outline-dark" onclick="showRegister()" style="width:100%;justify-content:center;">
+                    <i class="fas fa-plus"></i> הרשמה כספק חדש
+                </button>
+            </div>
+        </div>
+
+        <!-- Supplier Register -->
+        <div class="supplier-register" id="supplierRegister" style="display:none;">
+            <div class="register-card">
+                <h2><i class="fas fa-user-plus"></i> הרשמה כספק חדש</h2>
+                <form onsubmit="registerSupplier(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>שם העסק</label>
+                            <input type="text" id="regName" required placeholder="שם העסק">
+                        </div>
+                        <div class="form-group">
+                            <label>קטגוריה</label>
+                            <select id="regCategory" required>
+                                <option value="food">אוכל ומעדנים</option>
+                                <option value="documents">מסמכים ושליחויות</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>תיאור העסק</label>
+                        <textarea id="regDescription" rows="3" placeholder="ספר על העסק שלך..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="regPhone" required placeholder="050-0000000">
+                        </div>
+                        <div class="form-group">
+                            <label>אימייל</label>
+                            <input type="email" id="regEmail" placeholder="email@example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>כתובת</label>
+                        <input type="text" id="regAddress" required placeholder="כתובת העסק באופקים">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> הרשם
+                        </button>
+                        <button type="button" class="btn btn-outline-dark" onclick="showLogin()">
+                            <i class="fas fa-arrow-right"></i> חזור
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Supplier Dashboard -->
+        <div class="supplier-dashboard" id="supplierDashboard" style="display:none;">
+            <div class="supplier-dash-header">
+                <h2><i class="fas fa-store"></i> <span id="supplierName"></span></h2>
+                <button class="btn btn-small" onclick="supplierLogout()" style="background:var(--gray);">
+                    <i class="fas fa-sign-out-alt"></i> התנתק
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="supplier-tabs">
+                <button class="sup-tab active" onclick="showSupTab('menu')">
+                    <i class="fas fa-utensils"></i> תפריט
+                </button>
+                <button class="sup-tab" onclick="showSupTab('photos')">
+                    <i class="fas fa-images"></i> אלבום תמונות
+                </button>
+                <button class="sup-tab" onclick="showSupTab('orders')">
+                    <i class="fas fa-shopping-bag"></i> הזמנות
+                </button>
+                <button class="sup-tab" onclick="showSupTab('profile')">
+                    <i class="fas fa-cog"></i> פרופיל
+                </button>
+            </div>
+
+            <!-- Menu Tab -->
+            <div id="supTab-menu" class="sup-tab-content active">
+                <div class="menu-header">
+                    <h3>התפריט שלי</h3>
+                    <button class="btn btn-primary btn-small" onclick="showAddItem()">
+                        <i class="fas fa-plus"></i> הוסף פריט
+                    </button>
+                </div>
+                <div id="addItemForm" class="add-item-form" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>שם הפריט</label>
+                            <input type="text" id="itemName" placeholder="שם הפריט">
+                        </div>
+                        <div class="form-group">
+                            <label>מחיר (₪)</label>
+                            <input type="number" id="itemPrice" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>תיאור</label>
+                        <input type="text" id="itemDesc" placeholder="תיאור קצר">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-small" onclick="addMenuItem()">
+                            <i class="fas fa-check"></i> הוסף
+                        </button>
+                        <button class="btn btn-small" onclick="hideAddItem()" style="background:var(--gray);">ביטול</button>
+                    </div>
+                </div>
+                <div id="menuItems" class="menu-items"></div>
+            </div>
+
+            <!-- Photos Tab -->
+            <div id="supTab-photos" class="sup-tab-content">
+                <div class="menu-header">
+                    <h3>אלבום תמונות</h3>
+                    <label class="btn btn-primary btn-small upload-btn">
+                        <i class="fas fa-upload"></i> העלה תמונה
+                        <input type="file" accept="image/*" onchange="uploadPhoto(event)" style="display:none;">
+                    </label>
+                </div>
+                <div id="photoGallery" class="photo-gallery"></div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="supTab-orders" class="sup-tab-content">
+                <h3>הזמנות שלי</h3>
+                <div id="supplierOrders" class="supplier-orders"></div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="supTab-profile" class="sup-tab-content">
+                <h3>פרופיל העסק</h3>
+                <form onsubmit="updateProfile(event)">
+                    <div class="form-group">
+                        <label>שם העסק</label>
+                        <input type="text" id="profName">
+                    </div>
+                    <div class="form-group">
+                        <label>תיאור</label>
+                        <textarea id="profDesc" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="profPhone">
+                        </div>
+                        <div class="form-group">
+                            <label>אימייל</label>
+                            <input type="email" id="profEmail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>כתובת</label>
+                        <input type="text" id="profAddress">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> שמור שינויים
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/suppliers.js"></script>
+</body>
+</html>

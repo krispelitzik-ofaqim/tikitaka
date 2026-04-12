@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikiTaka - כניסת מוסדות</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/suppliers.css">
+    <link rel="stylesheet" href="css/institutions.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="logo-fallback" style="display:none;">
+                    <span class="logo-tiki">Tiki</span>
+                    <span class="logo-taka">Taka</span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">ראשי</a>
+                <a href="suppliers.html" class="nav-link">כניסת ספקים</a>
+                <a href="institutions.html" class="nav-link active">כניסת מוסדות</a>
+                <a href="admin.html" class="nav-link nav-admin">לוח ניהול</a>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html" class="mobile-link">ראשי</a>
+            <a href="suppliers.html" class="mobile-link">כניסת ספקים</a>
+            <a href="institutions.html" class="mobile-link">כניסת מוסדות</a>
+            <a href="admin.html" class="mobile-link">לוח ניהול</a>
+        </div>
+    </nav>
+
+    <div class="supplier-portal">
+        <!-- Institution Login -->
+        <div class="supplier-login" id="instLogin">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon" style="background:linear-gradient(135deg, #2563EB, #3B82F6);">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h2>כניסת מוסדות</h2>
+                    <p>הזמנת מוצרים מהספקים שלנו</p>
+                </div>
+                <form onsubmit="instLogin(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> טלפון המוסד</label>
+                        <input type="tel" id="instPhone" required placeholder="050-0000000">
+                    </div>
+                    <button type="submit" class="btn btn-inst btn-large" style="width:100%;justify-content:center;">
+                        <i class="fas fa-sign-in-alt"></i> כניסה
+                    </button>
+                </form>
+                <div class="login-divider">
+                    <span>מוסד חדש?</span>
+                </div>
+                <button class="btn btn-outline-dark" onclick="showInstRegister()" style="width:100%;justify-content:center;">
+                    <i class="fas fa-plus"></i> הרשמה כמוסד חדש
+                </button>
+            </div>
+        </div>
+
+        <!-- Institution Register -->
+        <div class="supplier-register" id="instRegister" style="display:none;">
+            <div class="register-card">
+                <h2><i class="fas fa-building" style="color:#2563EB;"></i> הרשמת מוסד חדש</h2>
+                <form onsubmit="registerInst(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>שם המוסד</label>
+                            <input type="text" id="regInstName" required placeholder="שם המוסד">
+                        </div>
+                        <div class="form-group">
+                            <label>סוג מוסד</label>
+                            <select id="regInstType" required>
+                                <option value="school">בית ספר</option>
+                                <option value="kindergarten">גן ילדים</option>
+                                <option value="office">משרד</option>
+                                <option value="synagogue">בית כנסת</option>
+                                <option value="community">מרכז קהילתי</option>
+                                <option value="other">אחר</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>איש קשר</label>
+                            <input type="text" id="regInstContact" required placeholder="שם איש קשר">
+                        </div>
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="regInstPhone" required placeholder="050-0000000">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>אימייל</label>
+                            <input type="email" id="regInstEmail" placeholder="email@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>כתובת</label>
+                            <input type="text" id="regInstAddress" required placeholder="כתובת המוסד באופקים">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-inst">
+                            <i class="fas fa-check"></i> הרשם
+                        </button>
+                        <button type="button" class="btn btn-outline-dark" onclick="showInstLogin()">
+                            <i class="fas fa-arrow-right"></i> חזור
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Institution Dashboard -->
+        <div class="supplier-dashboard" id="instDashboard" style="display:none;">
+            <div class="supplier-dash-header">
+                <h2><i class="fas fa-building" style="color:#2563EB;"></i> <span id="instName"></span></h2>
+                <button class="btn btn-small" onclick="instLogout()" style="background:var(--gray);">
+                    <i class="fas fa-sign-out-alt"></i> התנתק
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="supplier-tabs">
+                <button class="sup-tab inst-tab active" onclick="showInstTab('catalog')">
+                    <i class="fas fa-store"></i> קטלוג מוצרים
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('cart')">
+                    <i class="fas fa-shopping-cart"></i> סל קניות <span id="cartCount" class="cart-badge">0</span>
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('myorders')">
+                    <i class="fas fa-history"></i> ההזמנות שלי
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('instprofile')">
+                    <i class="fas fa-cog"></i> פרופיל
+                </button>
+            </div>
+
+            <!-- Catalog Tab -->
+            <div id="instTab-catalog" class="sup-tab-content active">
+                <div class="catalog-header">
+                    <h3>קטלוג מוצרים</h3>
+                    <div class="catalog-filters">
+                        <select id="supplierFilter" onchange="loadCatalog()">
+                            <option value="all">כל הספקים</option>
+                        </select>
+                        <input type="text" id="catalogSearch" placeholder="חפש מוצר..." oninput="loadCatalog()">
+                    </div>
+                </div>
+                <div id="catalogGrid" class="catalog-grid"></div>
+            </div>
+
+            <!-- Cart Tab -->
+            <div id="instTab-cart" class="sup-tab-content">
+                <h3><i class="fas fa-shopping-cart"></i> סל קניות</h3>
+                <div id="cartItems" class="cart-items"></div>
+                <div id="cartSummary" class="cart-summary" style="display:none;">
+                    <div class="cart-total">
+                        <span>סה"כ:</span>
+                        <span id="cartTotal" class="total-price">₪0</span>
+                    </div>
+                    <div class="form-group" style="margin-top:16px;">
+                        <label>הערות להזמנה</label>
+                        <textarea id="cartNotes" rows="2" placeholder="הערות מיוחדות..."></textarea>
+                    </div>
+                    <button class="btn btn-inst btn-large" style="width:100%;justify-content:center;margin-top:12px;" onclick="submitInstOrder()">
+                        <i class="fas fa-paper-plane"></i> שלח הזמנה
+                    </button>
+                </div>
+            </div>
+
+            <!-- My Orders Tab -->
+            <div id="instTab-myorders" class="sup-tab-content">
+                <h3><i class="fas fa-history"></i> ההזמנות שלי</h3>
+                <div id="instOrders" class="supplier-orders"></div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="instTab-instprofile" class="sup-tab-content">
+                <h3>פרופיל המוסד</h3>
+                <form onsubmit="updateInstProfile(event)">
+                    <div class="form-group">
+                        <label>שם המוסד</label>
+                        <input type="text" id="instProfName">
+                    </div>
+                    <div class="form-group">
+                        <label>איש קשר</label>
+                        <input type="text" id="instProfContact">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="instProfPhone">
+                        </div>
+                        <div class="form-group">
+                            <label>אימייל</label>
+                            <input type="email" id="instProfEmail">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>כתובת</label>
+                        <input type="text" id="instProfAddress">
+                    </div>
+                    <button type="submit" class="btn btn-inst">
+                        <i class="fas fa-save"></i> שמור שינויים
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Success Modal -->
+    <div class="modal" id="instOrderModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeInstModal()">&times;</span>
+            <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+            <h2>ההזמנה נשלחה!</h2>
+            <p>מספר הזמנה: <strong id="instOrderNumber"></strong></p>
+            <p>ההזמנה תגיע לכתובת המוסד שלכם</p>
+            <button class="btn btn-inst" onclick="closeInstModal()">סגור</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/institutions.js"></script>
+</body>
+</html>

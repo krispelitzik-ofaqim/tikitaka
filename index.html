@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikiTaka - משלוחים באופקים</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img" onerror="this.style.display='none'; document.getElementById('logo-text').style.display='flex';">
+                <div id="logo-text" class="logo-fallback">
+                    <span class="logo-tiki">Tiki</span>
+                    <span class="logo-taka">Taka</span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="#home" class="nav-link active">ראשי</a>
+                <a href="#services" class="nav-link">שירותים</a>
+                <a href="#order" class="nav-link">הזמן משלוח</a>
+                <a href="#track" class="nav-link">עקוב אחר משלוח</a>
+                <a href="suppliers.html" class="nav-link">כניסת ספקים</a>
+                <a href="institutions.html" class="nav-link">כניסת מוסדות</a>
+                <a href="admin.html" class="nav-link nav-admin">לוח ניהול</a>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#home" class="mobile-link" onclick="toggleMenu()">ראשי</a>
+            <a href="#services" class="mobile-link" onclick="toggleMenu()">שירותים</a>
+            <a href="#order" class="mobile-link" onclick="toggleMenu()">הזמן משלוח</a>
+            <a href="#track" class="mobile-link" onclick="toggleMenu()">עקוב אחר משלוח</a>
+            <a href="suppliers.html" class="mobile-link" onclick="toggleMenu()">כניסת ספקים</a>
+            <a href="institutions.html" class="mobile-link" onclick="toggleMenu()">כניסת מוסדות</a>
+            <a href="admin.html" class="mobile-link" onclick="toggleMenu()">לוח ניהול</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-logo">
+                <img src="images/logo.png" alt="TikiTaka" class="hero-logo-img" onerror="this.style.display='none'; document.getElementById('hero-logo-text').style.display='flex';">
+                <div id="hero-logo-text" class="hero-logo-fallback">
+                    <div class="hero-logo-circle">
+                        <span class="hero-tiki">Tiki</span>
+                        <span class="hero-taka">Taka</span>
+                        <span class="hero-deliveries">DELIVERIES</span>
+                    </div>
+                </div>
+            </div>
+            <h1>משלוחים מהירים באופקים</h1>
+            <p>אוכל, מעדנים ומסמכים - ישירות עד אליך</p>
+            <div class="hero-buttons">
+                <a href="#order" class="btn btn-primary">
+                    <i class="fas fa-motorcycle"></i> הזמן עכשיו
+                </a>
+                <a href="#services" class="btn btn-outline">
+                    <i class="fas fa-utensils"></i> ראה שירותים
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">500+</span>
+                    <span class="stat-label">משלוחים בחודש</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">30</span>
+                    <span class="stat-label">דקות ממוצע</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">ספקים</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <div class="container">
+            <h2 class="section-title">השירותים שלנו</h2>
+            <p class="section-subtitle">משלוחים מהירים ואמינים באופקים</p>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3>משלוחי אוכל</h3>
+                    <p>מגוון מסעדות ומעדניות באופקים, ישירות עד הדלת שלך</p>
+                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-cookie-bite"></i>
+                    </div>
+                    <h3>מעדנים ומתוקים</h3>
+                    <p>עוגות, מאפים ומעדנים מהקונדיטוריות הטובות בעיר</p>
+                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>משלוחי מסמכים</h3>
+                    <p>העברת מסמכים חשובים בצורה מהירה ובטוחה</p>
+                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h3>חבילות ומשלוחים</h3>
+                    <p>משלוח חבילות קטנות ובינוניות בתוך העיר</p>
+                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Section -->
+    <section id="order" class="order-section">
+        <div class="container">
+            <h2 class="section-title">הזמן משלוח</h2>
+            <p class="section-subtitle">מלא את הפרטים ונדאג לכל השאר</p>
+            <form class="order-form" id="orderForm" onsubmit="submitOrder(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerName"><i class="fas fa-user"></i> שם מלא</label>
+                        <input type="text" id="customerName" required placeholder="הכנס שם מלא">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone"><i class="fas fa-phone"></i> טלפון</label>
+                        <input type="tel" id="customerPhone" required placeholder="050-0000000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerEmail"><i class="fas fa-envelope"></i> אימייל</label>
+                        <input type="email" id="customerEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="category"><i class="fas fa-tag"></i> סוג משלוח</label>
+                        <select id="category" required>
+                            <option value="">בחר סוג משלוח</option>
+                            <option value="food">אוכל ומעדנים</option>
+                            <option value="documents">מסמכים</option>
+                            <option value="package">חבילה</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pickupAddress"><i class="fas fa-map-marker-alt"></i> כתובת איסוף</label>
+                        <input type="text" id="pickupAddress" required placeholder="רחוב, מספר, אופקים">
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryAddress"><i class="fas fa-map-pin"></i> כתובת משלוח</label>
+                        <input type="text" id="deliveryAddress" required placeholder="רחוב, מספר, אופקים">
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="notes"><i class="fas fa-sticky-note"></i> הערות</label>
+                    <textarea id="notes" rows="3" placeholder="הערות מיוחדות למשלוח..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-paper-plane"></i> שלח הזמנה
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Track Section -->
+    <section id="track" class="track-section">
+        <div class="container">
+            <h2 class="section-title">עקוב אחר המשלוח</h2>
+            <p class="section-subtitle">הכנס מספר הזמנה לצפייה בסטטוס</p>
+            <div class="track-form">
+                <div class="track-input-group">
+                    <input type="text" id="trackNumber" placeholder="מספר הזמנה..." class="track-input">
+                    <button onclick="trackOrder()" class="btn btn-primary">
+                        <i class="fas fa-search"></i> חפש
+                    </button>
+                </div>
+            </div>
+            <div id="trackResult" class="track-result" style="display:none;">
+                <div class="track-status">
+                    <div class="track-step active">
+                        <div class="step-icon"><i class="fas fa-clipboard-check"></i></div>
+                        <span>התקבל</span>
+                    </div>
+                    <div class="track-line"></div>
+                    <div class="track-step">
+                        <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                        <span>אושר</span>
+                    </div>
+                    <div class="track-line"></div>
+                    <div class="track-step">
+                        <div class="step-icon"><i class="fas fa-box"></i></div>
+                        <span>נאסף</span>
+                    </div>
+                    <div class="track-line"></div>
+                    <div class="track-step">
+                        <div class="step-icon"><i class="fas fa-motorcycle"></i></div>
+                        <span>בדרך</span>
+                    </div>
+                    <div class="track-line"></div>
+                    <div class="track-step">
+                        <div class="step-icon"><i class="fas fa-home"></i></div>
+                        <span>נמסר</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>TikiTaka</h3>
+                    <p>שירות משלוחים מהיר ואמין באופקים. אוכל, מעדנים ומסמכים - הכל מגיע אליך.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>קישורים</h3>
+                    <a href="#home">ראשי</a>
+                    <a href="#services">שירותים</a>
+                    <a href="#order">הזמן משלוח</a>
+                    <a href="#track">עקוב אחר משלוח</a>
+                </div>
+                <div class="footer-col">
+                    <h3>צור קשר</h3>
+                    <p><i class="fas fa-phone"></i> 08-000-0000</p>
+                    <p><i class="fas fa-envelope"></i> info@tikitaka.co.il</p>
+                    <p><i class="fas fa-map-marker-alt"></i> אופקים, ישראל</p>
+                </div>
+                <div class="footer-col">
+                    <h3>עקבו אחרינו</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 TikiTaka Deliveries. כל הזכויות שמורות.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Order Success Modal -->
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="modal-icon"><i class="fas fa-check-circle"></i></div>
+            <h2>ההזמנה התקבלה!</h2>
+            <p>מספר הזמנה: <strong id="orderNumber"></strong></p>
+            <p>נציג יצור איתך קשר בהקדם</p>
+            <button class="btn btn-primary" onclick="closeModal()">סגור</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
