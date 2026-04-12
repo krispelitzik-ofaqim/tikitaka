@@ -8,16 +8,15 @@
     <link rel="stylesheet" href="css/suppliers.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                <div class="logo-fallback" style="display:flex;">
-                    <span class="logo-tiki">Tiki</span>
-                    <span class="logo-taka">Taka</span>
-                </div>
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">ראשי</a>
@@ -134,6 +133,9 @@
                 <button class="sup-tab" onclick="showSupTab('orders')">
                     <i class="fas fa-shopping-bag"></i> הזמנות
                 </button>
+                <button class="sup-tab" onclick="showSupTab('location')">
+                    <i class="fas fa-map-marker-alt"></i> מיקום על מפה
+                </button>
                 <button class="sup-tab" onclick="showSupTab('profile')">
                     <i class="fas fa-cog"></i> פרופיל
                 </button>
@@ -188,6 +190,19 @@
             <div id="supTab-orders" class="sup-tab-content">
                 <h3>הזמנות שלי</h3>
                 <div id="supplierOrders" class="supplier-orders"></div>
+            </div>
+
+            <!-- Location Tab -->
+            <div id="supTab-location" class="sup-tab-content">
+                <h3><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> מיקום העסק על המפה</h3>
+                <p style="color:var(--gray);margin-bottom:12px;">לחץ על המפה כדי לסמן את מיקום העסק שלך</p>
+                <div id="supplierMap" style="width:100%;height:400px;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1);"></div>
+                <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+                    <span id="locationStatus" style="color:var(--gray);font-size:14px;">מיקום לא נבחר</span>
+                    <button class="btn btn-primary btn-small" onclick="saveSupplierLocation()">
+                        <i class="fas fa-save"></i> שמור מיקום
+                    </button>
+                </div>
             </div>
 
             <!-- Profile Tab -->

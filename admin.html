@@ -8,16 +8,15 @@
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <div class="admin-layout">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-fallback" style="display:flex;">
-                    <span class="logo-tiki">Tiki</span>
-                    <span class="logo-taka">Taka</span>
-                </div>
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img" style="height:60px;width:auto;">
                 <span class="admin-badge">ניהול</span>
             </div>
             <nav class="sidebar-nav">
@@ -32,6 +31,18 @@
                 </a>
                 <a href="#" class="sidebar-link" onclick="showTab('customers')">
                     <i class="fas fa-users"></i> לקוחות
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('products')">
+                    <i class="fas fa-boxes"></i> מוצרים
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('maps')">
+                    <i class="fas fa-map"></i> מפות
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('fleet')">
+                    <i class="fas fa-motorcycle"></i> צי תנועה
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('customerView')">
+                    <i class="fas fa-eye"></i> תצוגת לקוח
                 </a>
                 <a href="#" class="sidebar-link" onclick="showTab('settings')">
                     <i class="fas fa-cog"></i> הגדרות
@@ -113,6 +124,13 @@
                             <tbody id="recentOrdersTable">
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h2><i class="fas fa-mobile-alt"></i> תצוגת לקוח</h2>
+                    <div style="display:flex;justify-content:center;padding:20px 0;">
+                        <iframe src="index.html" style="width:375px;height:667px;border:3px solid #333;border-radius:20px;background:#fff;"></iframe>
                     </div>
                 </div>
             </div>
@@ -217,6 +235,235 @@
             </div>
 
             <!-- Customer View Tab -->
+            <!-- Products Tab -->
+            <div id="tab-products" class="tab-content">
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-boxes"></i> ניהול מוצרים</h2>
+                        <button class="btn btn-primary btn-small" onclick="showAddProduct()">
+                            <i class="fas fa-plus"></i> טען מוצר חדש
+                        </button>
+                    </div>
+
+                    <!-- Add Product Form -->
+                    <div id="addProductForm" style="display:none;background:var(--light);border-radius:12px;padding:24px;margin-bottom:20px;">
+                        <h3 style="margin-bottom:16px;color:var(--dark);">טעינת מוצר חדש</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>שם המוצר</label>
+                                <input type="text" id="prodName" placeholder="שם המוצר">
+                            </div>
+                            <div class="form-group">
+                                <label>קטגוריה</label>
+                                <select id="prodCategory">
+                                    <option value="food">אוכל</option>
+                                    <option value="sweets">מתוקים ופיצוחים</option>
+                                    <option value="drinks">שתייה</option>
+                                    <option value="flowers">פרחים</option>
+                                    <option value="office">ציוד משרדי</option>
+                                    <option value="cleaning">ניקיון</option>
+                                    <option value="other">אחר</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>תיאור</label>
+                            <textarea id="prodDesc" rows="2" placeholder="תיאור המוצר..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>מחיר (₪)</label>
+                                <input type="number" id="prodPrice" placeholder="0" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>יחידת מידה</label>
+                                <select id="prodUnit">
+                                    <option value="unit">יחידה</option>
+                                    <option value="kg">ק"ג</option>
+                                    <option value="pack">חבילה</option>
+                                    <option value="box">קרטון</option>
+                                    <option value="bottle">בקבוק</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>ספק / מקור</label>
+                                <input type="text" id="prodSupplier" placeholder="שם הספק">
+                            </div>
+                            <div class="form-group">
+                                <label>מיקום / כתובת</label>
+                                <input type="text" id="prodLocation" placeholder="כתובת באופקים">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>כמות במלאי</label>
+                                <input type="number" id="prodStock" placeholder="0" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>מינימום להזמנה</label>
+                                <input type="number" id="prodMinOrder" placeholder="1" min="1" value="1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-image"></i> תמונת מוצר</label>
+                            <label class="btn btn-small" style="background:var(--gray);color:white;cursor:pointer;display:inline-flex;">
+                                <i class="fas fa-upload"></i> בחר תמונה
+                                <input type="file" accept="image/*" id="prodImage" onchange="previewProductImage(event)" style="display:none;">
+                            </label>
+                            <div id="prodImagePreview" style="margin-top:8px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="prodForInstitutions" checked> זמין למוסדות
+                            </label>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <button class="btn btn-primary btn-small" onclick="addProduct()">
+                                <i class="fas fa-check"></i> טען מוצר
+                            </button>
+                            <button class="btn btn-small" onclick="hideProductForm()" style="background:var(--gray);color:white;">ביטול</button>
+                        </div>
+                    </div>
+
+                    <!-- Filter -->
+                    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                        <select id="prodFilterCat" onchange="loadProducts()" style="padding:8px 16px;border:2px solid #e0e0e0;border-radius:8px;font-family:'Heebo',sans-serif;direction:rtl;">
+                            <option value="all">כל הקטגוריות</option>
+                            <option value="food">אוכל</option>
+                            <option value="sweets">מתוקים ופיצוחים</option>
+                            <option value="drinks">שתייה</option>
+                            <option value="flowers">פרחים</option>
+                            <option value="office">ציוד משרדי</option>
+                            <option value="cleaning">ניקיון</option>
+                            <option value="other">אחר</option>
+                        </select>
+                        <input type="text" id="prodSearch" placeholder="חפש מוצר..." oninput="loadProducts()" style="padding:8px 16px;border:2px solid #e0e0e0;border-radius:8px;font-family:'Heebo',sans-serif;direction:rtl;flex:1;min-width:150px;">
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div id="productsGrid" class="products-grid"></div>
+                </div>
+            </div>
+
+            <!-- Maps Tab -->
+            <div id="tab-maps" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-map"></i> מפות</h2>
+                    <div class="map-tabs">
+                        <button class="map-tab-btn active" onclick="showMapView('all')">
+                            <i class="fas fa-globe"></i> הכל
+                        </button>
+                        <button class="map-tab-btn" onclick="showMapView('couriers')">
+                            <i class="fas fa-motorcycle"></i> שליחים
+                        </button>
+                        <button class="map-tab-btn" onclick="showMapView('suppliers')">
+                            <i class="fas fa-store"></i> ספקים
+                        </button>
+                        <button class="map-tab-btn" onclick="showMapView('deliveries')">
+                            <i class="fas fa-route"></i> משלוחים פעילים
+                        </button>
+                    </div>
+                    <div id="adminMap" style="width:100%;height:500px;border-radius:12px;overflow:hidden;margin-top:16px;"></div>
+                    <div id="mapLegend" class="map-legend">
+                        <span><i class="fas fa-circle" style="color:#059669;"></i> שליחים</span>
+                        <span><i class="fas fa-circle" style="color:#C41E2F;"></i> ספקים</span>
+                        <span><i class="fas fa-circle" style="color:#2563EB;"></i> משלוחים</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fleet Tab -->
+            <div id="tab-fleet" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-motorcycle"></i> ניהול צי תנועה</h2>
+                    <div class="stats-grid" style="margin-bottom:20px;">
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background:#059669;">
+                                <i class="fas fa-bicycle"></i>
+                            </div>
+                            <div class="stat-card-info">
+                                <h3 id="fleetBikes">0</h3>
+                                <p>אופניים</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background:#D97706;">
+                                <i class="fas fa-motorcycle"></i>
+                            </div>
+                            <div class="stat-card-info">
+                                <h3 id="fleetScooters">0</h3>
+                                <p>וספות</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-card-icon" style="background:#2563EB;">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <div class="stat-card-info">
+                                <h3 id="fleetCars">0</h3>
+                                <p>רכבים</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-header">
+                        <h3>רכבים וכלי רכב</h3>
+                        <button class="btn btn-primary btn-small" onclick="showAddVehicle()">
+                            <i class="fas fa-plus"></i> הוסף כלי רכב
+                        </button>
+                    </div>
+                    <div id="addVehicleForm" class="add-item-form" style="display:none;background:var(--light);border-radius:8px;padding:20px;margin-bottom:16px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>סוג</label>
+                                <select id="vehicleType">
+                                    <option value="bike">אופניים</option>
+                                    <option value="scooter">וספה</option>
+                                    <option value="car">רכב</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>מספר רישוי / זיהוי</label>
+                                <input type="text" id="vehiclePlate" placeholder="מספר רישוי">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>שליח מוקצה</label>
+                                <input type="text" id="vehicleCourier" placeholder="שם השליח">
+                            </div>
+                            <div class="form-group">
+                                <label>סטטוס</label>
+                                <select id="vehicleStatus">
+                                    <option value="active">פעיל</option>
+                                    <option value="maintenance">בתחזוקה</option>
+                                    <option value="inactive">לא פעיל</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions" style="display:flex;gap:8px;">
+                            <button class="btn btn-primary btn-small" onclick="addVehicle()"><i class="fas fa-check"></i> הוסף</button>
+                            <button class="btn btn-small" onclick="hideVehicleForm()" style="background:var(--gray);color:white;">ביטול</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>סוג</th>
+                                    <th>מספר רישוי</th>
+                                    <th>שליח</th>
+                                    <th>סטטוס</th>
+                                    <th>פעולות</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fleetTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div id="tab-customerView" class="tab-content">
                 <div class="admin-section">
                     <h2><i class="fas fa-eye"></i> צפייה בממשק לקוח</h2>

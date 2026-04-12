@@ -144,6 +144,9 @@ function trackOrder() {
         lines.forEach((line, i) => {
             line.style.opacity = i < activeIndex ? '1' : '0.3';
         });
+
+        // Show courier map if courier assigned
+        showCourierOnMap(order);
     } else {
         resultDiv.style.display = 'block';
         resultDiv.innerHTML = '<p style="text-align:center;color:#C41E2F;font-weight:700;">הזמנה לא נמצאה. בדוק את מספר ההזמנה.</p>';
@@ -162,6 +165,43 @@ function trackOrder() {
                 </div>`;
             resultDiv.style.display = 'none';
         }, 3000);
+    }
+}
+
+// Show courier on map
+let trackMap = null;
+function showCourierOnMap(order) {
+    const mapContainer = document.getElementById('courierTrackMapContainer');
+    if (!mapContainer) return;
+
+    if (order.courierId && order.status !== 'delivered' && order.status !== 'pending') {
+        mapContainer.style.display = 'block';
+
+        const couriers = DB.get('couriers');
+        const courier = couriers.find(c => c.id === order.courierId);
+        const OFAKIM = [31.3133, 34.6200];
+        const courierLat = courier ? courier.lat : OFAKIM[0];
+        const courierLng = courier ? courier.lng : OFAKIM[1];
+
+        if (trackMap) trackMap.remove();
+
+        trackMap = L.map('trackCourierMap').setView([courierLat, courierLng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap',
+            maxZoom: 19
+        }).addTo(trackMap);
+
+        // Courier marker
+        const courierIcon = L.divIcon({
+            className: 'courier-marker',
+            html: '<div style="background:#059669;color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.3);"><i class="fas fa-motorcycle"></i></div>',
+            iconSize: [40, 40],
+            iconAnchor: [20, 20]
+        });
+        L.marker([courierLat, courierLng], { icon: courierIcon }).addTo(trackMap)
+            .bindPopup('<strong>' + (courier ? courier.name : 'השליח שלך') + '</strong><br>בדרך אליך!').openPopup();
+    } else {
+        mapContainer.style.display = 'none';
     }
 }
 

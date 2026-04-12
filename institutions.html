@@ -15,11 +15,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                <img src="images/logo.png" alt="TikiTaka" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="logo-fallback" style="display:none;">
-                    <span class="logo-tiki">Tiki</span>
-                    <span class="logo-taka">Taka</span>
-                </div>
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">ראשי</a>
@@ -54,6 +50,16 @@
                     <div class="form-group">
                         <label><i class="fas fa-phone"></i> טלפון המוסד</label>
                         <input type="tel" id="instPhone" required placeholder="050-0000000">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user-tag"></i> תפקיד</label>
+                        <select id="instRole" required>
+                            <option value="admin">מנהל מערכת</option>
+                            <option value="accountant">הנהלת חשבונות</option>
+                            <option value="signer1">מורשה חתימה 1</option>
+                            <option value="signer2">מורשה חתימה 2</option>
+                            <option value="dept_auth">מורשה אגפים</option>
+                        </select>
                     </div>
                     <button type="submit" class="btn btn-inst btn-large" style="width:100%;justify-content:center;">
                         <i class="fas fa-sign-in-alt"></i> כניסה
@@ -131,8 +137,13 @@
                 </button>
             </div>
 
+            <!-- Role Badge -->
+            <div class="role-badge-bar">
+                <span class="role-badge" id="roleBadge"></span>
+            </div>
+
             <!-- Tabs -->
-            <div class="supplier-tabs">
+            <div class="supplier-tabs" id="instTabs">
                 <button class="sup-tab inst-tab active" onclick="showInstTab('catalog')">
                     <i class="fas fa-store"></i> קטלוג מוצרים
                 </button>
@@ -141,6 +152,18 @@
                 </button>
                 <button class="sup-tab inst-tab" onclick="showInstTab('myorders')">
                     <i class="fas fa-history"></i> ההזמנות שלי
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('procurement')" id="tabBtnProcurement">
+                    <i class="fas fa-file-invoice"></i> טבלאות רכש
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('budget')" id="tabBtnBudget">
+                    <i class="fas fa-coins"></i> ניהול תקציב
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('approvals')" id="tabBtnApprovals">
+                    <i class="fas fa-signature"></i> אישורים
+                </button>
+                <button class="sup-tab inst-tab" onclick="showInstTab('users')" id="tabBtnUsers">
+                    <i class="fas fa-users-cog"></i> משתמשים
                 </button>
                 <button class="sup-tab inst-tab" onclick="showInstTab('instprofile')">
                     <i class="fas fa-cog"></i> פרופיל
@@ -184,6 +207,210 @@
             <div id="instTab-myorders" class="sup-tab-content">
                 <h3><i class="fas fa-history"></i> ההזמנות שלי</h3>
                 <div id="instOrders" class="supplier-orders"></div>
+            </div>
+
+            <!-- Procurement Tab -->
+            <div id="instTab-procurement" class="sup-tab-content">
+                <div class="menu-header">
+                    <h3><i class="fas fa-file-invoice"></i> טבלאות רכש</h3>
+                    <button class="btn btn-inst btn-small" onclick="showAddProcurement()" id="addProcBtn">
+                        <i class="fas fa-plus"></i> בקשת רכש חדשה
+                    </button>
+                </div>
+                <!-- Add Procurement Form -->
+                <div id="addProcForm" class="add-item-form" style="display:none;">
+                    <h4 style="margin-bottom:12px;">בקשת רכש חדשה</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>תיאור הפריט</label>
+                            <input type="text" id="procItem" placeholder="תיאור הפריט">
+                        </div>
+                        <div class="form-group">
+                            <label>ספק</label>
+                            <input type="text" id="procSupplier" placeholder="שם הספק">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>כמות</label>
+                            <input type="number" id="procQty" placeholder="0" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label>מחיר ליחידה (₪)</label>
+                            <input type="number" id="procPrice" placeholder="0" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>אגף/מחלקה</label>
+                            <input type="text" id="procDept" placeholder="שם האגף">
+                        </div>
+                        <div class="form-group">
+                            <label>דחיפות</label>
+                            <select id="procUrgency">
+                                <option value="normal">רגיל</option>
+                                <option value="urgent">דחוף</option>
+                                <option value="critical">קריטי</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>הערות</label>
+                        <textarea id="procNotes" rows="2" placeholder="הערות נוספות..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-inst btn-small" onclick="addProcurement()">
+                            <i class="fas fa-check"></i> שלח בקשה
+                        </button>
+                        <button class="btn btn-small" onclick="hideProcForm()" style="background:var(--gray);color:white;">ביטול</button>
+                    </div>
+                </div>
+                <!-- Procurement Table -->
+                <div class="table-wrapper">
+                    <table class="admin-table" id="procurementTable">
+                        <thead>
+                            <tr>
+                                <th>מס'</th>
+                                <th>תיאור</th>
+                                <th>ספק</th>
+                                <th>כמות</th>
+                                <th>מחיר</th>
+                                <th>סה"כ</th>
+                                <th>אגף</th>
+                                <th>דחיפות</th>
+                                <th>סטטוס</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="procTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="proc-summary" id="procSummary"></div>
+            </div>
+
+            <!-- Budget Tab -->
+            <div id="instTab-budget" class="sup-tab-content">
+                <div class="menu-header">
+                    <h3><i class="fas fa-coins"></i> ניהול תקציב</h3>
+                    <button class="btn btn-inst btn-small" onclick="showAddBudget()" id="addBudgetBtn">
+                        <i class="fas fa-plus"></i> הוסף סעיף
+                    </button>
+                </div>
+                <!-- Add Budget Form -->
+                <div id="addBudgetForm" class="add-item-form" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>שם הסעיף</label>
+                            <input type="text" id="budgetName" placeholder="שם סעיף התקציב">
+                        </div>
+                        <div class="form-group">
+                            <label>תקציב מאושר (₪)</label>
+                            <input type="number" id="budgetAmount" placeholder="0" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>אגף/מחלקה</label>
+                            <input type="text" id="budgetDept" placeholder="שם האגף">
+                        </div>
+                        <div class="form-group">
+                            <label>שנת תקציב</label>
+                            <select id="budgetYear">
+                                <option value="2026">2026</option>
+                                <option value="2025">2025</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-inst btn-small" onclick="addBudgetItem()">
+                            <i class="fas fa-check"></i> הוסף
+                        </button>
+                        <button class="btn btn-small" onclick="hideBudgetForm()" style="background:var(--gray);color:white;">ביטול</button>
+                    </div>
+                </div>
+                <!-- Budget Table -->
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>סעיף</th>
+                                <th>אגף</th>
+                                <th>שנה</th>
+                                <th>תקציב מאושר</th>
+                                <th>נוצל</th>
+                                <th>יתרה</th>
+                                <th>% ניצול</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="budgetTableBody"></tbody>
+                    </table>
+                </div>
+                <div class="budget-total-bar" id="budgetTotalBar"></div>
+            </div>
+
+            <!-- Approvals Tab -->
+            <div id="instTab-approvals" class="sup-tab-content">
+                <h3><i class="fas fa-signature"></i> אישורים ממתינים</h3>
+                <div id="approvalsList" class="supplier-orders"></div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="instTab-users" class="sup-tab-content">
+                <div class="menu-header">
+                    <h3><i class="fas fa-users-cog"></i> ניהול משתמשים</h3>
+                    <button class="btn btn-inst btn-small" onclick="showAddUser()">
+                        <i class="fas fa-user-plus"></i> הוסף משתמש
+                    </button>
+                </div>
+                <div id="addUserForm" class="add-item-form" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>שם</label>
+                            <input type="text" id="userName" placeholder="שם מלא">
+                        </div>
+                        <div class="form-group">
+                            <label>תפקיד</label>
+                            <select id="userRole">
+                                <option value="admin">מנהל מערכת</option>
+                                <option value="accountant">הנהלת חשבונות</option>
+                                <option value="signer1">מורשה חתימה 1</option>
+                                <option value="signer2">מורשה חתימה 2</option>
+                                <option value="dept_auth">מורשה אגפים</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>טלפון</label>
+                            <input type="tel" id="userPhone" placeholder="050-0000000">
+                        </div>
+                        <div class="form-group">
+                            <label>אימייל</label>
+                            <input type="email" id="userEmail" placeholder="email@example.com">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-inst btn-small" onclick="addUser()">
+                            <i class="fas fa-check"></i> הוסף
+                        </button>
+                        <button class="btn btn-small" onclick="hideUserForm()" style="background:var(--gray);color:white;">ביטול</button>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>שם</th>
+                                <th>תפקיד</th>
+                                <th>טלפון</th>
+                                <th>אימייל</th>
+                                <th>פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Profile Tab -->

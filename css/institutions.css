@@ -289,6 +289,162 @@
     margin-bottom: 12px;
 }
 
+/* Role Badge */
+.role-badge-bar {
+    margin-bottom: 16px;
+}
+
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--white);
+    background: #2563EB;
+}
+
+.role-badge.role-admin { background: #7C3AED; }
+.role-badge.role-accountant { background: #059669; }
+.role-badge.role-signer1 { background: #D97706; }
+.role-badge.role-signer2 { background: #DC2626; }
+.role-badge.role-dept_auth { background: #2563EB; }
+
+/* Procurement */
+.proc-summary {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--light);
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.proc-stat {
+    text-align: center;
+}
+
+.proc-stat .proc-val {
+    font-size: 24px;
+    font-weight: 900;
+    color: #2563EB;
+}
+
+.proc-stat .proc-label {
+    font-size: 12px;
+    color: var(--gray);
+}
+
+.urgency-badge {
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.urgency-normal { background: #d1fae5; color: #065f46; }
+.urgency-urgent { background: #fef3c7; color: #92400e; }
+.urgency-critical { background: #fee2e2; color: #991b1b; }
+
+.proc-status-badge {
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.proc-pending { background: #fff3cd; color: #856404; }
+.proc-approved1 { background: #d1ecf1; color: #0c5460; }
+.proc-approved2 { background: #cce5ff; color: #004085; }
+.proc-completed { background: #d4edda; color: #155724; }
+.proc-rejected { background: #f8d7da; color: #721c24; }
+
+/* Budget */
+.budget-total-bar {
+    margin-top: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, #2563EB, #3B82F6);
+    border-radius: var(--radius);
+    color: var(--white);
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.budget-stat {
+    text-align: center;
+}
+
+.budget-stat .bval {
+    font-size: 24px;
+    font-weight: 900;
+}
+
+.budget-stat .blabel {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.progress-green { background: #28a745; }
+.progress-yellow { background: #ffc107; }
+.progress-red { background: #dc3545; }
+
+/* Approval Card */
+.approval-card {
+    padding: 16px;
+    background: var(--light);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border-right: 4px solid #2563EB;
+}
+
+.approval-card h4 { margin-bottom: 4px; }
+.approval-card p { color: var(--gray); font-size: 13px; margin-bottom: 4px; }
+
+.approval-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+/* Search box in tabs */
+.tab-search {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 50px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 14px;
+    direction: rtl;
+    margin-bottom: 16px;
+}
+
+.tab-search:focus {
+    border-color: #2563EB;
+    outline: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .catalog-grid {

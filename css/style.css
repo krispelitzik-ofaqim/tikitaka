@@ -74,13 +74,13 @@ a {
 
 .btn-outline {
     background: transparent;
-    color: var(--white);
-    border: 2px solid var(--white);
+    color: var(--primary);
+    border: 2px solid var(--primary);
 }
 
 .btn-outline:hover {
-    background: var(--white);
-    color: var(--primary);
+    background: var(--primary);
+    color: var(--white);
 }
 
 .btn-small {
@@ -206,6 +206,16 @@ a {
     transition: var(--transition);
 }
 
+.mobile-close {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 8px 12px;
+}
+
 .mobile-link:hover {
     background: var(--primary);
     color: var(--white);
@@ -221,7 +231,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #7B1018 100%);
+    background: var(--white);
     padding-top: 70px;
     overflow: hidden;
 }
@@ -233,7 +243,7 @@ a {
     right: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(212,168,67,0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(196,30,47,0.05) 0%, transparent 70%);
     animation: float 6s ease-in-out infinite;
 }
 
@@ -244,7 +254,7 @@ a {
     left: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(212,168,67,0.05) 0%, transparent 70%);
     animation: float 8s ease-in-out infinite reverse;
 }
 
@@ -257,7 +267,7 @@ a {
     position: relative;
     z-index: 2;
     text-align: center;
-    color: var(--white);
+    color: var(--dark);
     padding: 40px 20px;
 }
 
@@ -269,7 +279,7 @@ a {
     width: 180px;
     height: 180px;
     object-fit: contain;
-    filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 4px 15px rgba(0,0,0,0.1));
 }
 
 .hero-logo-fallback {
@@ -319,12 +329,12 @@ a {
     font-size: 48px;
     font-weight: 900;
     margin-bottom: 16px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    color: var(--primary);
 }
 
 .hero p {
     font-size: 22px;
-    opacity: 0.9;
+    color: var(--gray);
     margin-bottom: 30px;
 }
 
@@ -351,12 +361,12 @@ a {
     display: block;
     font-size: 36px;
     font-weight: 900;
-    color: var(--gold);
+    color: var(--primary);
 }
 
 .stat-label {
     font-size: 14px;
-    opacity: 0.8;
+    color: var(--gray);
 }
 
 /* ===================== */

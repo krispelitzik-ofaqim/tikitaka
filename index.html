@@ -5,27 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TikiTaka - משלוחים באופקים</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/courier.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                <img src="images/logo.png" alt="TikiTaka" class="logo-img" onerror="this.style.display='none'; document.getElementById('logo-text').style.display='flex';">
-                <div id="logo-text" class="logo-fallback">
-                    <span class="logo-tiki">Tiki</span>
-                    <span class="logo-taka">Taka</span>
-                </div>
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
             </div>
             <div class="nav-links">
                 <a href="#home" class="nav-link active">ראשי</a>
                 <a href="#services" class="nav-link">שירותים</a>
                 <a href="#order" class="nav-link">הזמן משלוח</a>
                 <a href="#track" class="nav-link">עקוב אחר משלוח</a>
+                <a href="#pricing" class="nav-link">מחירון שירות</a>
                 <a href="suppliers.html" class="nav-link">כניסת ספקים</a>
                 <a href="institutions.html" class="nav-link">כניסת מוסדות</a>
+                <a href="courier.html" class="nav-link">כניסת שליחים</a>
                 <a href="admin.html" class="nav-link nav-admin">לוח ניהול</a>
             </div>
             <button class="hamburger" onclick="toggleMenu()">
@@ -33,12 +34,15 @@
             </button>
         </div>
         <div class="mobile-menu" id="mobileMenu">
+            <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
             <a href="#home" class="mobile-link" onclick="toggleMenu()">ראשי</a>
             <a href="#services" class="mobile-link" onclick="toggleMenu()">שירותים</a>
             <a href="#order" class="mobile-link" onclick="toggleMenu()">הזמן משלוח</a>
             <a href="#track" class="mobile-link" onclick="toggleMenu()">עקוב אחר משלוח</a>
+            <a href="#pricing" class="mobile-link" onclick="toggleMenu()">מחירון שירות</a>
             <a href="suppliers.html" class="mobile-link" onclick="toggleMenu()">כניסת ספקים</a>
             <a href="institutions.html" class="mobile-link" onclick="toggleMenu()">כניסת מוסדות</a>
+            <a href="courier.html" class="mobile-link" onclick="toggleMenu()">כניסת שליחים</a>
             <a href="admin.html" class="mobile-link" onclick="toggleMenu()">לוח ניהול</a>
         </div>
     </nav>
@@ -47,16 +51,6 @@
     <section id="home" class="hero">
         <div class="hero-overlay"></div>
         <div class="hero-content">
-            <div class="hero-logo">
-                <img src="images/logo.png" alt="TikiTaka" class="hero-logo-img" onerror="this.style.display='none'; document.getElementById('hero-logo-text').style.display='flex';">
-                <div id="hero-logo-text" class="hero-logo-fallback">
-                    <div class="hero-logo-circle">
-                        <span class="hero-tiki">Tiki</span>
-                        <span class="hero-taka">Taka</span>
-                        <span class="hero-deliveries">DELIVERIES</span>
-                    </div>
-                </div>
-            </div>
             <h1>משלוחים מהירים באופקים</h1>
             <p>אוכל, מעדנים ומסמכים - ישירות עד אליך</p>
             <div class="hero-buttons">
@@ -96,87 +90,36 @@
                     </div>
                     <h3>משלוחי אוכל</h3>
                     <p>מגוון מסעדות ומעדניות באופקים, ישירות עד הדלת שלך</p>
-                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
                         <i class="fas fa-cookie-bite"></i>
                     </div>
-                    <h3>מעדנים ומתוקים</h3>
-                    <p>עוגות, מאפים ומעדנים מהקונדיטוריות הטובות בעיר</p>
-                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                    <h3>מתוקים, פיצוחים, סיגריות ושתייה חריפה</h3>
+                    <p>מגוון מתוקים, פיצוחים, סיגריות ושתייה חריפה מהספקים הטובים באופקים</p>
+                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
-                        <i class="fas fa-file-alt"></i>
+                        <i class="fas fa-seedling"></i>
                     </div>
-                    <h3>משלוחי מסמכים</h3>
-                    <p>העברת מסמכים חשובים בצורה מהירה ובטוחה</p>
-                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                    <h3>משלוחי פרחים</h3>
+                    <p>זרי פרחים ועציצים לכל אירוע, ישירות מהחנויות באופקים</p>
+                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
-                        <i class="fas fa-box"></i>
+                        <i class="fas fa-building"></i>
                     </div>
-                    <h3>חבילות ומשלוחים</h3>
-                    <p>משלוח חבילות קטנות ובינוניות בתוך העיר</p>
-                    <a href="#order" class="btn btn-small">הזמן עכשיו</a>
+                    <h3>שירות למוסדות</h3>
+                    <p>הזמנות מרוכזות למוסדות חינוך, משרדים ובתי כנסת עם ניהול רכש ותקציב</p>
+                    <a href="institutions.html" class="btn btn-small">כניסת מוסדות</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Order Section -->
-    <section id="order" class="order-section">
-        <div class="container">
-            <h2 class="section-title">הזמן משלוח</h2>
-            <p class="section-subtitle">מלא את הפרטים ונדאג לכל השאר</p>
-            <form class="order-form" id="orderForm" onsubmit="submitOrder(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customerName"><i class="fas fa-user"></i> שם מלא</label>
-                        <input type="text" id="customerName" required placeholder="הכנס שם מלא">
-                    </div>
-                    <div class="form-group">
-                        <label for="customerPhone"><i class="fas fa-phone"></i> טלפון</label>
-                        <input type="tel" id="customerPhone" required placeholder="050-0000000">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="customerEmail"><i class="fas fa-envelope"></i> אימייל</label>
-                        <input type="email" id="customerEmail" placeholder="email@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="category"><i class="fas fa-tag"></i> סוג משלוח</label>
-                        <select id="category" required>
-                            <option value="">בחר סוג משלוח</option>
-                            <option value="food">אוכל ומעדנים</option>
-                            <option value="documents">מסמכים</option>
-                            <option value="package">חבילה</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="pickupAddress"><i class="fas fa-map-marker-alt"></i> כתובת איסוף</label>
-                        <input type="text" id="pickupAddress" required placeholder="רחוב, מספר, אופקים">
-                    </div>
-                    <div class="form-group">
-                        <label for="deliveryAddress"><i class="fas fa-map-pin"></i> כתובת משלוח</label>
-                        <input type="text" id="deliveryAddress" required placeholder="רחוב, מספר, אופקים">
-                    </div>
-                </div>
-                <div class="form-group full-width">
-                    <label for="notes"><i class="fas fa-sticky-note"></i> הערות</label>
-                    <textarea id="notes" rows="3" placeholder="הערות מיוחדות למשלוח..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary btn-large">
-                    <i class="fas fa-paper-plane"></i> שלח הזמנה
-                </button>
-            </form>
-        </div>
-    </section>
 
     <!-- Track Section -->
     <section id="track" class="track-section">
@@ -219,6 +162,73 @@
                     </div>
                 </div>
             </div>
+            <!-- Courier Map -->
+            <div id="courierTrackMapContainer" style="display:none;margin-top:24px;">
+                <h3 style="text-align:center;margin-bottom:12px;color:var(--dark);"><i class="fas fa-map-marked-alt" style="color:var(--primary);"></i> איפה השליח שלך?</h3>
+                <div id="trackCourierMap" style="width:100%;height:300px;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1);"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="services" style="background:var(--white);">
+        <div class="container">
+            <h2 class="section-title">מחירון שירות</h2>
+            <p class="section-subtitle">מחירים שקופים ונוחים</p>
+            <div class="services-grid">
+                <div class="service-card" style="border-top:4px solid var(--primary);">
+                    <div class="service-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3>משלוח אוכל / מעדנים</h3>
+                    <p style="font-size:28px;font-weight:900;color:var(--primary);margin:12px 0;">₪15 - ₪30</p>
+                    <p>בהתאם למרחק בתוך אופקים</p>
+                </div>
+                <div class="service-card" style="border-top:4px solid var(--primary);">
+                    <div class="service-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h3>משלוח פרחים</h3>
+                    <p style="font-size:28px;font-weight:900;color:var(--primary);margin:12px 0;">₪20 - ₪35</p>
+                    <p>כולל טיפול זהיר במשלוח</p>
+                </div>
+                <div class="service-card" style="border-top:4px solid var(--primary);">
+                    <div class="service-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h3>מסמכים וחבילות</h3>
+                    <p style="font-size:28px;font-weight:900;color:var(--primary);margin:12px 0;">₪20 - ₪45</p>
+                    <p>רגיל / דחוף (עד 30 דק')</p>
+                </div>
+                <div class="service-card" style="border-top:4px solid #2563EB;">
+                    <div class="service-icon" style="background:linear-gradient(135deg, #2563EB, #3B82F6);">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>שירות למוסדות</h3>
+                    <p style="font-size:28px;font-weight:900;color:#2563EB;margin:12px 0;">בהתאמה אישית</p>
+                    <p>מחירים מיוחדים להזמנות מרוכזות</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section id="privacy" class="order-section" style="padding:60px 0;">
+        <div class="container" style="max-width:800px;">
+            <h2 class="section-title">מדיניות פרטיות</h2>
+            <div style="background:var(--light);padding:30px;border-radius:12px;line-height:1.8;color:var(--gray);">
+                <p><strong>TikiTaka Deliveries</strong> מחויבת לשמור על פרטיותך.</p>
+                <br>
+                <p><strong>מידע שאנו אוספים:</strong> שם, טלפון, אימייל וכתובת למשלוח - לצורך ביצוע ההזמנה בלבד.</p>
+                <br>
+                <p><strong>שימוש במידע:</strong> המידע משמש אך ורק לטובת ביצוע המשלוח ושירות לקוחות. איננו מוכרים או מעבירים מידע לצדדים שלישיים.</p>
+                <br>
+                <p><strong>מיקום:</strong> שימוש במיקום GPS נעשה רק עבור שליחים פעילים לצורך ניווט ומעקב משלוחים.</p>
+                <br>
+                <p><strong>אבטחה:</strong> אנו נוקטים באמצעי אבטחה סבירים להגנה על המידע שלך.</p>
+                <br>
+                <p><strong>יצירת קשר:</strong> לכל שאלה בנושא פרטיות - info@tikitaka.co.il</p>
+            </div>
         </div>
     </section>
 
@@ -236,6 +246,8 @@
                     <a href="#services">שירותים</a>
                     <a href="#order">הזמן משלוח</a>
                     <a href="#track">עקוב אחר משלוח</a>
+                    <a href="#pricing">מחירון שירות</a>
+                    <a href="#privacy">פרטיות</a>
                 </div>
                 <div class="footer-col">
                     <h3>צור קשר</h3>

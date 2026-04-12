@@ -238,6 +238,85 @@ function updateProfile(e) {
     alert('הפרופיל עודכן בהצלחה!');
 }
 
+// Supplier Map
+let supplierMap = null;
+let supplierMapMarker = null;
+let selectedLocation = null;
+
+function initSupplierMap() {
+    const OFAKIM = [31.3133, 34.6200];
+    const mapEl = document.getElementById('supplierMap');
+    if (!mapEl || supplierMap) return;
+
+    const startLat = currentSupplier.lat || OFAKIM[0];
+    const startLng = currentSupplier.lng || OFAKIM[1];
+
+    supplierMap = L.map('supplierMap').setView([startLat, startLng], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19
+    }).addTo(supplierMap);
+
+    // Existing location
+    if (currentSupplier.lat && currentSupplier.lng) {
+        const icon = L.divIcon({
+            className: 'sup-map-marker',
+            html: '<div style="background:#C41E2F;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-store"></i></div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+        supplierMapMarker = L.marker([startLat, startLng], { icon: icon }).addTo(supplierMap)
+            .bindPopup('<strong>' + currentSupplier.name + '</strong>');
+        selectedLocation = { lat: startLat, lng: startLng };
+        document.getElementById('locationStatus').textContent = 'מיקום נבחר ✓';
+        document.getElementById('locationStatus').style.color = '#28a745';
+    }
+
+    // Click to set location
+    supplierMap.on('click', function(e) {
+        selectedLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+
+        if (supplierMapMarker) supplierMap.removeLayer(supplierMapMarker);
+
+        const icon = L.divIcon({
+            className: 'sup-map-marker',
+            html: '<div style="background:#C41E2F;color:white;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-store"></i></div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+        supplierMapMarker = L.marker([e.latlng.lat, e.latlng.lng], { icon: icon }).addTo(supplierMap)
+            .bindPopup('<strong>' + currentSupplier.name + '</strong>').openPopup();
+
+        document.getElementById('locationStatus').textContent = 'מיקום חדש נבחר - לחץ שמור';
+        document.getElementById('locationStatus').style.color = '#D97706';
+    });
+}
+
+function saveSupplierLocation() {
+    if (!selectedLocation) {
+        alert('לחץ על המפה כדי לבחור מיקום');
+        return;
+    }
+    currentSupplier.lat = selectedLocation.lat;
+    currentSupplier.lng = selectedLocation.lng;
+    saveSupplier();
+    document.getElementById('locationStatus').textContent = 'מיקום נשמר ✓';
+    document.getElementById('locationStatus').style.color = '#28a745';
+    alert('מיקום העסק נשמר בהצלחה!');
+}
+
+// Override showSupTab to init map
+const origShowSupTab = showSupTab;
+showSupTab = function(tab) {
+    origShowSupTab(tab);
+    if (tab === 'location') {
+        setTimeout(() => {
+            initSupplierMap();
+            if (supplierMap) supplierMap.invalidateSize();
+        }, 100);
+    }
+};
+
 // Save supplier to storage
 function saveSupplier() {
     const suppliers = DB.get('suppliers');

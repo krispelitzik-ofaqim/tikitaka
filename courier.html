@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikiTaka - ממשק שליח</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/courier.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">ראשי</a>
+                <a href="courier.html" class="nav-link active">ממשק שליח</a>
+                <a href="admin.html" class="nav-link nav-admin">לוח ניהול</a>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html" class="mobile-link">ראשי</a>
+            <a href="courier.html" class="mobile-link">ממשק שליח</a>
+            <a href="admin.html" class="mobile-link">לוח ניהול</a>
+        </div>
+    </nav>
+
+    <div class="courier-portal">
+        <!-- Courier Login -->
+        <div class="courier-login" id="courierLogin">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon" style="background:linear-gradient(135deg, #059669, #10B981);">
+                        <i class="fas fa-motorcycle"></i>
+                    </div>
+                    <h2>כניסת שליחים</h2>
+                    <p>הכנס את מספר הטלפון שלך</p>
+                </div>
+                <form onsubmit="courierLogin(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-phone"></i> טלפון</label>
+                        <input type="tel" id="courierPhone" required placeholder="050-0000000">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> שם</label>
+                        <input type="text" id="courierName" required placeholder="השם שלך">
+                    </div>
+                    <button type="submit" class="btn btn-courier btn-large" style="width:100%;justify-content:center;">
+                        <i class="fas fa-sign-in-alt"></i> כניסה
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Courier Dashboard -->
+        <div class="courier-dashboard" id="courierDashboard" style="display:none;">
+            <div class="courier-header">
+                <div class="courier-info">
+                    <h2><i class="fas fa-motorcycle"></i> <span id="cName"></span></h2>
+                    <span class="courier-status-badge" id="courierStatusBadge">פעיל</span>
+                </div>
+                <div class="courier-header-actions">
+                    <button class="btn btn-courier btn-small" id="btnGoActive" onclick="toggleShift()" style="display:none;">
+                        <i class="fas fa-play"></i> שליח פעיל
+                    </button>
+                    <button class="btn btn-small" id="btnEndShift" onclick="toggleShift()" style="background:#DC2626;color:white;display:none;">
+                        <i class="fas fa-stop"></i> סיים משמרת
+                    </button>
+                    <button class="btn btn-small" onclick="courierLogout()" style="background:var(--gray);color:white;">
+                        <i class="fas fa-sign-out-alt"></i> התנתק
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div class="courier-map-container">
+                <div id="courierMap" class="courier-map"></div>
+                <div class="map-controls">
+                    <button class="map-btn" onclick="centerOnMe()">
+                        <i class="fas fa-crosshairs"></i> המיקום שלי
+                    </button>
+                    <button class="map-btn" onclick="startNavigation()" id="navBtn" style="display:none;">
+                        <i class="fas fa-route"></i> נווט
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active Deliveries -->
+            <div class="courier-section">
+                <h3><i class="fas fa-shipping-fast"></i> משלוחים פעילים</h3>
+                <div id="activeDeliveries" class="delivery-list"></div>
+            </div>
+
+            <!-- Available Orders -->
+            <div class="courier-section">
+                <h3><i class="fas fa-clipboard-list"></i> הזמנות זמינות</h3>
+                <div id="availableOrders" class="delivery-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/courier.js"></script>
+</body>
+</html>
