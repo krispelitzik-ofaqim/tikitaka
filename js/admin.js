@@ -147,6 +147,8 @@ function saveSettings() {
     });
     const newPwd = document.getElementById('setAdminPwd').value.trim();
     if (newPwd) s.adminPassword = newPwd;
+    const restorePwd = document.getElementById('setRestorePwd').value.trim();
+    if (restorePwd) s.restorePassword = restorePwd;
     s.driverCommission = parseFloat(document.getElementById('setDriverCommission').value) || 20;
     s.courierCommission = parseFloat(document.getElementById('setCourierCommission').value) || 20;
     s.supplierCommission = parseFloat(document.getElementById('setSupplierCommission').value) || 10;
@@ -167,6 +169,7 @@ function saveSettings() {
     s.deliveryUrgent = parseFloat(document.getElementById('setDeliveryUrgent').value) || 50;
     saveSettingsObj(s);
     document.getElementById('setAdminPwd').value = '';
+    document.getElementById('setRestorePwd').value = '';
     alert('ההגדרות נשמרו!');
 }
 
@@ -4069,6 +4072,210 @@ function exportGenericCSV(type, getOrdersFn, getRateFn, idField, priceField) {
     a.click();
     URL.revokeObjectURL(url);
 }
+
+// ============================================
+// AUTO-BACKUP SYSTEM
+// ============================================
+function getFullBackupData() {
+    const data = { _exportedAt: new Date().toISOString(), _version: 'tikitaka-backup-v2' };
+    DB_KEYS.forEach(k => { data[k] = DB.get(k); });
+    data.settings = getSettings();
+    return data;
+}
+
+function runAutoBackupNow() {
+    const data = getFullBackupData();
+    const json = JSON.stringify(data);
+    localStorage.setItem('tikitaka_autoBackup', json);
+    localStorage.setItem('tikitaka_autoBackupDate', new Date().toISOString());
+    localStorage.setItem('tikitaka_autoBackupSize', json.length.toString());
+    updateBackupDashboard();
+}
+
+const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/1clC5m-mtzjEod-qkUaFGf73iUjcV3V93';
+
+function backupToDrive() {
+    exportDB('all');
+    setTimeout(() => { window.open(DRIVE_FOLDER_URL, '_blank'); }, 500);
+}
+
+function promptRestorePassword() {
+    const s = getSettings();
+    const savedPwd = s.restorePassword;
+    if (!savedPwd) {
+        alert('לא הוגדרה סיסמת שחזור. הגדר סיסמה בהגדרות > אבטחה > סיסמת שחזור');
+        return;
+    }
+    const entered = prompt('הזן סיסמת שחזור:');
+    if (entered === null) return;
+    if (entered !== savedPwd) {
+        alert('סיסמה שגויה!');
+        return;
+    }
+    document.getElementById('restoreFileInput').click();
+}
+
+function runBackupWithProgress() {
+    const wrap = document.getElementById('backupProgressWrap');
+    const bar = document.getElementById('backupProgressBar');
+    const pct = document.getElementById('backupProgressPct');
+    const label = document.getElementById('backupProgressLabel');
+    const icon = document.getElementById('backupStatusIcon');
+    const title = document.getElementById('backupStatusTitle');
+    const sub = document.getElementById('backupStatusSub');
+    if (!wrap) return;
+
+    wrap.style.display = 'block';
+    bar.style.width = '0%';
+    pct.textContent = '0%';
+    if (icon) icon.innerHTML = '<i class="fas fa-sync fa-spin" style="color:#F59E0B;"></i>';
+    if (icon) icon.style.borderColor = '#F59E0B';
+    if (title) title.textContent = 'מגבה...';
+    if (sub) sub.textContent = 'אנא המתן';
+
+    const steps = [
+        { pctVal: 15, text: 'קורא הגדרות...' },
+        { pctVal: 30, text: 'מגבה ספקים ומוצרים...' },
+        { pctVal: 50, text: 'מגבה הזמנות ונסיעות...' },
+        { pctVal: 70, text: 'מגבה נהגים ושליחים...' },
+        { pctVal: 85, text: 'מגבה התחשבנויות...' },
+        { pctVal: 95, text: 'שומר גיבוי...' },
+        { pctVal: 100, text: 'הושלם!' }
+    ];
+
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i >= steps.length) {
+            clearInterval(interval);
+            runAutoBackupNow();
+            if (icon) icon.innerHTML = '<i class="fas fa-check-circle" style="color:#059669;"></i>';
+            if (icon) icon.style.borderColor = '#059669';
+            if (title) title.textContent = 'גיבוי מערכת';
+            if (sub) sub.textContent = 'הגיבוי הושלם בהצלחה';
+            setTimeout(() => { wrap.style.display = 'none'; updateBackupDashboard(); }, 2000);
+            return;
+        }
+        bar.style.width = steps[i].pctVal + '%';
+        pct.textContent = steps[i].pctVal + '%';
+        label.textContent = steps[i].text;
+        i++;
+    }, 400);
+}
+
+function updateBackupDashboard() {
+    const lastDateStr = localStorage.getItem('tikitaka_autoBackupDate');
+    const sizeStr = localStorage.getItem('tikitaka_autoBackupSize');
+
+    const dateEl = document.getElementById('backupLastDate');
+    const timeEl = document.getElementById('backupLastTime');
+    const sizeEl = document.getElementById('backupSize');
+    const badgeEl = document.getElementById('backupStatusBadge');
+    const nextEl = document.getElementById('backupNextTime');
+    const subEl = document.getElementById('backupStatusSub');
+
+    if (lastDateStr) {
+        const d = new Date(lastDateStr);
+        if (dateEl) dateEl.textContent = d.toLocaleDateString('he-IL');
+        if (timeEl) timeEl.textContent = d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+        if (subEl) subEl.textContent = 'גיבוי אחרון: ' + d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    } else {
+        if (dateEl) dateEl.textContent = 'טרם בוצע';
+        if (timeEl) timeEl.textContent = '--:--';
+        if (subEl) subEl.textContent = 'לא בוצע גיבוי עדיין';
+    }
+
+    if (sizeStr && sizeEl) {
+        const bytes = parseInt(sizeStr);
+        if (bytes > 1048576) sizeEl.textContent = (bytes / 1048576).toFixed(1) + ' MB';
+        else sizeEl.textContent = Math.round(bytes / 1024) + ' KB';
+    }
+
+    if (badgeEl) {
+        const hoursAgo = lastDateStr ? (Date.now() - new Date(lastDateStr).getTime()) / 3600000 : 999;
+        if (hoursAgo < 13) { badgeEl.textContent = 'תקין'; badgeEl.style.color = '#059669'; }
+        else if (hoursAgo < 25) { badgeEl.textContent = 'ישן'; badgeEl.style.color = '#D97706'; }
+        else { badgeEl.textContent = 'מיושן!'; badgeEl.style.color = '#dc3545'; }
+    }
+
+    if (nextEl) {
+        const now = new Date();
+        const h = now.getHours();
+        let nextHour, nextMin = 0;
+        if (h < 5) { nextHour = 5; }
+        else if (h < 17) { nextHour = 17; }
+        else { nextHour = 5; }
+        const next = new Date(now);
+        if (nextHour <= h) next.setDate(next.getDate() + 1);
+        next.setHours(nextHour, nextMin, 0, 0);
+        const diffMs = next - now;
+        const diffH = Math.floor(diffMs / 3600000);
+        const diffM = Math.floor((diffMs % 3600000) / 60000);
+        nextEl.textContent = String(nextHour).padStart(2, '0') + ':00';
+        nextEl.title = `בעוד ${diffH} שעות ו-${diffM} דקות`;
+    }
+}
+
+function downloadLastAutoBackup() {
+    const raw = localStorage.getItem('tikitaka_autoBackup');
+    if (!raw) { alert('אין גיבוי אוטומטי שמור'); return; }
+    const date = (localStorage.getItem('tikitaka_autoBackupDate') || '').slice(0, 10);
+    const blob = new Blob([raw], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tikitaka_autobackup_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function toggleAutoBackup() {
+    const on = document.getElementById('autoBackupToggle').checked;
+    const s = getSettings();
+    s.autoBackup = on;
+    saveSettingsObj(s);
+}
+
+function updateLastBackupInfo() {
+    const el = document.getElementById('lastBackupInfo');
+    if (!el) return;
+    const date = localStorage.getItem('tikitaka_autoBackupDate');
+    if (date) {
+        const d = new Date(date);
+        el.innerHTML = `<i class="fas fa-check-circle" style="color:#059669;"></i> גיבוי אחרון: ${d.toLocaleDateString('he-IL')} בשעה ${d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'})}`;
+    } else {
+        el.innerHTML = '<i class="fas fa-info-circle" style="color:#D97706;"></i> לא בוצע גיבוי אוטומטי עדיין';
+    }
+}
+
+function checkAutoBackup() {
+    const s = getSettings();
+    if (s.autoBackup === false) return;
+    const now = new Date();
+    const hour = now.getHours();
+    const min = now.getMinutes();
+    const last = localStorage.getItem('tikitaka_autoBackupDate');
+    const lastDate = last ? new Date(last) : null;
+    const isBackupWindow = (hour === 5 && min < 30) || (hour === 17 && min < 30);
+    const alreadyBackedThisWindow = lastDate && (now.getTime() - lastDate.getTime()) < 6 * 60 * 60 * 1000;
+    if (isBackupWindow && !alreadyBackedThisWindow) {
+        const data = getFullBackupData();
+        const json = JSON.stringify(data);
+        localStorage.setItem('tikitaka_autoBackup', json);
+        localStorage.setItem('tikitaka_autoBackupDate', now.toISOString());
+        localStorage.setItem('tikitaka_autoBackupSize', json.length.toString());
+    }
+    if (!last) {
+        const data = getFullBackupData();
+        const json = JSON.stringify(data);
+        localStorage.setItem('tikitaka_autoBackup', json);
+        localStorage.setItem('tikitaka_autoBackupDate', now.toISOString());
+        localStorage.setItem('tikitaka_autoBackupSize', json.length.toString());
+    }
+}
+
+checkAutoBackup();
+setInterval(checkAutoBackup, 5 * 60 * 1000);
+setTimeout(updateBackupDashboard, 300);
 
 // Init
 loadDashboard();
