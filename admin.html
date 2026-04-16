@@ -695,6 +695,11 @@
                     <!-- Team Stats -->
                     <div class="stats-grid" id="teamStats"></div>
 
+                    <div style="background:#fff;border:2px solid #1a1a1a;border-radius:14px;padding:20px;margin:20px 0;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+                        <h3 style="font-size:16px;margin-bottom:14px;color:#1a1a1a;"><i class="fas fa-key" style="color:#C41E2F;"></i> ניהול משתמשים וסיסמאות</h3>
+                        <div id="passwordManagementTable"></div>
+                    </div>
+
                     <!-- Add Team Member -->
                     <div style="background:#fff;border:2px solid #C41E2F;border-radius:14px;padding:20px;margin:20px 0;box-shadow:0 4px 12px rgba(196,30,47,0.1);">
                         <h3 style="font-size:15px;margin-bottom:14px;color:#C41E2F;"><i class="fas fa-user-plus"></i> הוספת חבר צוות</h3>
@@ -800,6 +805,12 @@
                             </button>
                         </div>
                     </div>
+                    <div style="position:sticky;top:60px;z-index:40;background:#C41E2F;border-radius:10px;padding:10px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(196,30,47,0.3);">
+                        <span style="color:#fff;font-size:14px;font-weight:700;"><i class="fas fa-save"></i> לא לשכוח לשמור שינויים!</span>
+                        <button class="btn btn-primary" onclick="saveSettings();this.textContent='נשמר!';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-save\'></i> שמור הכל';},1500);" style="background:#fff;color:#C41E2F;font-size:14px;padding:8px 24px;border-radius:8px;font-weight:800;">
+                            <i class="fas fa-save"></i> שמור הכל
+                        </button>
+                    </div>
                     <p style="font-size:12px;color:#888;margin-bottom:16px;"><i class="fas fa-info-circle"></i> גרור בלוקים כדי לשנות סדר. כל שינוי נשמר רק בלחיצה על "שמור הגדרות".</p>
                     <div class="settings-form" style="display:grid;grid-template-columns:1fr 1fr;gap:30px;max-width:100%;">
                     <!-- Right Column -->
@@ -826,6 +837,7 @@
                                 <input type="text" id="setBizAddress">
                             </div>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
                         <!-- Services toggles -->
                         <div style="background:#f8f9fa;border-radius:14px;padding:20px;margin-bottom:20px;border:1px solid #e5e5e5;cursor:grab;">
@@ -857,6 +869,7 @@
                                 <input type="checkbox" class="svc-toggle" data-key="rental" checked> <i class="fas fa-bicycle" style="color:#10B981;"></i> השכרת אופניים/קורקינט
                             </label>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                         <!-- Security -->
@@ -876,6 +889,7 @@
                             <label>סיסמת שחזור מגיבוי</label>
                             <input type="password" id="setRestorePwd" placeholder="השאר ריק כדי לא לשנות">
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                     </div><!-- end right column -->
@@ -943,6 +957,7 @@
                                 </select>
                             </div>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                         <!-- Accounting -->
@@ -958,6 +973,7 @@
                                 <input type="number" id="setVat" min="0" max="100" step="0.5">
                             </div>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                         <!-- Commissions -->
@@ -987,6 +1003,7 @@
                                 </select>
                             </div>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                         <!-- Delivery Tariffs -->
@@ -1015,6 +1032,7 @@
                                 <input type="number" id="setDeliveryUrgent" min="0" step="5" value="50">
                             </div>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                         <!-- Taxi Tariffs -->
@@ -1040,6 +1058,7 @@
                                 <input type="number" id="setTaxiShabbat" min="0" step="1">
                             </div>
                         </div>
+                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                         </div>
 
                         <!-- Coupons -->

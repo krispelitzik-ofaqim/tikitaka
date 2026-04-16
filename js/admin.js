@@ -4118,6 +4118,7 @@ const TEAM_SHIFTS = {
 function loadTeam() {
     renderTeamStats();
     renderTeamList();
+    renderPasswordTable();
 }
 
 function renderTeamStats() {
@@ -4245,6 +4246,63 @@ function renderTeamList() {
                 </div>
             </div>`;
         }).join('') + '</div>';
+}
+
+function renderPasswordTable() {
+    const wrap = document.getElementById('passwordManagementTable');
+    if (!wrap) return;
+    const settings = getSettings();
+    const team = DB.get('teamMembers');
+
+    let rows = `<tr style="background:#C41E2F;color:#fff;">
+        <td style="padding:10px 14px;font-weight:700;border-radius:8px 0 0 0;">admin</td>
+        <td style="padding:10px 14px;">${escapeHtml(settings.adminUsername || 'admin')}</td>
+        <td style="padding:10px 14px;">מנהל מערכת</td>
+        <td style="padding:10px 14px;font-family:monospace;">••••••</td>
+        <td style="padding:10px 14px;"><span style="background:rgba(255,255,255,0.2);padding:2px 10px;border-radius:10px;font-size:11px;">פעיל</span></td>
+        <td style="padding:10px 14px;border-radius:0 8px 0 0;">
+            <button onclick="promptChangePassword('admin')" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:12px;"><i class="fas fa-edit"></i> שנה</button>
+        </td>
+    </tr>`;
+
+    team.forEach(m => {
+        const hasPassword = m.password && m.password.length > 0;
+        const statusColor = m.status === 'active' ? '#059669' : '#999';
+        const statusLabel = m.status === 'active' ? 'פעיל' : 'מושבת';
+        const roleLabels = {admin:'מנהל',dispatcher:'מוקדן',field_manager:'מנהל שטח',courier_manager:'מנהל שליחים',driver_manager:'מנהל נהגים',supplier_manager:'מנהל ספקים',accountant:'חשב',support:'תמיכה'};
+        rows += `<tr>
+            <td style="padding:10px 14px;font-weight:600;">${escapeHtml(m.name)}</td>
+            <td style="padding:10px 14px;color:#888;">${escapeHtml(m.phone || '-')}</td>
+            <td style="padding:10px 14px;">${roleLabels[m.role] || m.role}</td>
+            <td style="padding:10px 14px;font-family:monospace;">${hasPassword ? '••••••' : '<span style="color:#dc3545;">לא הוגדרה</span>'}</td>
+            <td style="padding:10px 14px;"><span style="color:${statusColor};font-size:12px;font-weight:600;"><i class="fas fa-circle" style="font-size:8px;"></i> ${statusLabel}</span></td>
+            <td style="padding:10px 14px;">
+                <button onclick="promptChangePassword('${m.id}')" style="background:#f0f0f0;color:#333;border:none;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit;font-size:12px;"><i class="fas fa-edit"></i> שנה</button>
+            </td>
+        </tr>`;
+    });
+
+    wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px;"><thead><tr style="background:#f8f9fa;"><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">שם</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">משתמש/טלפון</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">תפקיד</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">סיסמה</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">סטטוס</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">פעולות</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function promptChangePassword(id) {
+    const newPwd = prompt('הזן סיסמה חדשה:');
+    if (newPwd === null || !newPwd.trim()) return;
+    if (id === 'admin') {
+        const s = getSettings();
+        s.adminPassword = newPwd.trim();
+        saveSettingsObj(s);
+        alert('סיסמת מנהל עודכנה!');
+    } else {
+        const team = DB.get('teamMembers');
+        const m = team.find(x => x.id === id);
+        if (m) {
+            m.password = newPwd.trim();
+            DB.set('teamMembers', team);
+            alert('סיסמה עודכנה עבור ' + m.name);
+        }
+    }
+    renderPasswordTable();
 }
 
 // ============================================
