@@ -148,6 +148,12 @@
                 <a href="#" class="sidebar-link" onclick="showTab('settlement')">
                     <i class="fas fa-handshake"></i> התחשבנות נהגים
                 </a>
+                <a href="#" class="sidebar-link" onclick="showTab('courierSettlement')">
+                    <i class="fas fa-motorcycle"></i> התחשבנות שליחים
+                </a>
+                <a href="#" class="sidebar-link" onclick="showTab('supplierSettlement')">
+                    <i class="fas fa-store"></i> התחשבנות ספקים
+                </a>
                 <a href="#" class="sidebar-link" onclick="showTab('settings')">
                     <i class="fas fa-cog"></i> הגדרות
                 </a>
@@ -479,6 +485,98 @@
                 </div>
             </div>
 
+            <!-- Courier Settlement Tab -->
+            <div id="tab-courierSettlement" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-motorcycle"></i> התחשבנות שליחים</h2>
+                    <div class="stats-grid" id="courierSettlementStats"></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:20px 0;">
+                        <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                            <label>שליח</label>
+                            <select id="courierSettlementCourier" onchange="loadCourierSettlement()"><option value="all">כל השליחים</option></select>
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:140px;">
+                            <label>מתאריך</label>
+                            <input type="date" id="courierSettlementFrom" onchange="loadCourierSettlement()">
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:140px;">
+                            <label>עד תאריך</label>
+                            <input type="date" id="courierSettlementTo" onchange="loadCourierSettlement()">
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:100px;">
+                            <label>תקופה</label>
+                            <select id="courierSettlementPeriod" onchange="setCourierSettlementPeriod()">
+                                <option value="week">שבוע</option><option value="month">חודש</option><option value="custom">מותאם</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:flex-end;">
+                            <button class="btn btn-primary" onclick="loadCourierSettlement()"><i class="fas fa-sync"></i> רענן</button>
+                            <button class="btn btn-primary" style="background:#059669;" onclick="exportCourierSettlementCSV()"><i class="fas fa-file-csv"></i> ייצוא</button>
+                            <button class="btn btn-primary" style="background:#7C3AED;" onclick="markCourierSettlementPaid()"><i class="fas fa-check-double"></i> סמן כשולם</button>
+                        </div>
+                    </div>
+                    <div id="courierSettlementCards"></div>
+                    <div class="admin-section" style="margin-top:20px;">
+                        <h3><i class="fas fa-list"></i> פירוט משלוחים</h3>
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" id="courierSettlementTable"><thead><tr>
+                                <th>מס׳</th><th>תאריך</th><th>שליח</th><th>סוג</th><th>ק"מ</th><th>דמי משלוח</th><th>עמלה</th><th>לשליח</th><th>סטטוס</th>
+                            </tr></thead><tbody id="courierSettlementBody"></tbody></table>
+                        </div>
+                    </div>
+                    <div class="admin-section" style="margin-top:20px;">
+                        <h3><i class="fas fa-history"></i> היסטוריית תשלומים</h3>
+                        <div id="courierPaymentHistory"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supplier Settlement Tab -->
+            <div id="tab-supplierSettlement" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-store"></i> התחשבנות ספקים</h2>
+                    <div class="stats-grid" id="supplierSettlementStats"></div>
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:20px 0;">
+                        <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                            <label>ספק</label>
+                            <select id="supplierSettlementSupplier" onchange="loadSupplierSettlement()"><option value="all">כל הספקים</option></select>
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:140px;">
+                            <label>מתאריך</label>
+                            <input type="date" id="supplierSettlementFrom" onchange="loadSupplierSettlement()">
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:140px;">
+                            <label>עד תאריך</label>
+                            <input type="date" id="supplierSettlementTo" onchange="loadSupplierSettlement()">
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:100px;">
+                            <label>תקופה</label>
+                            <select id="supplierSettlementPeriod" onchange="setSupplierSettlementPeriod()">
+                                <option value="week">שבוע</option><option value="month">חודש</option><option value="custom">מותאם</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:flex-end;">
+                            <button class="btn btn-primary" onclick="loadSupplierSettlement()"><i class="fas fa-sync"></i> רענן</button>
+                            <button class="btn btn-primary" style="background:#059669;" onclick="exportSupplierSettlementCSV()"><i class="fas fa-file-csv"></i> ייצוא</button>
+                            <button class="btn btn-primary" style="background:#7C3AED;" onclick="markSupplierSettlementPaid()"><i class="fas fa-check-double"></i> סמן כשולם</button>
+                        </div>
+                    </div>
+                    <div id="supplierSettlementCards"></div>
+                    <div class="admin-section" style="margin-top:20px;">
+                        <h3><i class="fas fa-list"></i> פירוט הזמנות</h3>
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" id="supplierSettlementTable"><thead><tr>
+                                <th>מס׳</th><th>תאריך</th><th>ספק</th><th>מוצר</th><th>סכום</th><th>עמלה</th><th>לספק</th><th>סטטוס</th>
+                            </tr></thead><tbody id="supplierSettlementBody"></tbody></table>
+                        </div>
+                    </div>
+                    <div class="admin-section" style="margin-top:20px;">
+                        <h3><i class="fas fa-history"></i> היסטוריית תשלומים</h3>
+                        <div id="supplierPaymentHistory"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Settings Tab -->
             <div id="tab-settings" class="tab-content">
                 <div class="admin-section">
@@ -546,6 +644,59 @@
                         <div class="form-group">
                             <label>סיסמת ניהול חדשה</label>
                             <input type="password" id="setAdminPwd" placeholder="השאר ריק כדי לא לשנות">
+                        </div>
+                        <hr style="margin:20px 0;border:none;border-top:1px solid #e0e0e0;">
+                        <h3 style="font-size:16px;margin-bottom:12px;"><i class="fas fa-handshake"></i> עמלות התחשבנות</h3>
+                        <p style="font-size:12px;color:#666;margin-bottom:10px;">אחוזי עמלה שהאפליקציה גובה מכל גורם</p>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>עמלת נהג מונית (%)</label>
+                                <input type="number" id="setDriverCommission" min="0" max="50" step="1" value="20">
+                            </div>
+                            <div class="form-group">
+                                <label>עמלת שליח (%)</label>
+                                <input type="number" id="setCourierCommission" min="0" max="50" step="1" value="20">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>עמלת ספק/חנות (%)</label>
+                                <input type="number" id="setSupplierCommission" min="0" max="50" step="1" value="10">
+                            </div>
+                            <div class="form-group">
+                                <label>תדירות תשלום ברירת מחדל</label>
+                                <select id="setPaymentFrequency">
+                                    <option value="daily">יומי</option>
+                                    <option value="weekly" selected>שבועי</option>
+                                    <option value="biweekly">דו-שבועי</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr style="margin:20px 0;border:none;border-top:1px solid #e0e0e0;">
+                        <h3 style="font-size:16px;margin-bottom:12px;"><i class="fas fa-truck"></i> תעריפי משלוחים</h3>
+                        <p style="font-size:12px;color:#666;margin-bottom:10px;">בסיס + עלות לק"מ לכל סוג שליחות</p>
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" style="font-size:13px;">
+                                <thead><tr><th>סוג</th><th>בסיס (₪)</th><th>לק"מ (₪)</th></tr></thead>
+                                <tbody>
+                                    <tr><td><i class="fas fa-utensils" style="color:#C41E2F;"></i> אוכל</td><td><input type="number" id="setDeliveryFoodBase" min="0" step="1" value="12" style="width:70px;"></td><td><input type="number" id="setDeliveryFoodKm" min="0" step="0.5" value="3" style="width:70px;"></td></tr>
+                                    <tr><td><i class="fas fa-cookie-bite" style="color:#7C3AED;"></i> מתוקים/שתייה</td><td><input type="number" id="setDeliverySweetsBase" min="0" step="1" value="15" style="width:70px;"></td><td><input type="number" id="setDeliverySweetsKm" min="0" step="0.5" value="3" style="width:70px;"></td></tr>
+                                    <tr><td><i class="fas fa-seedling" style="color:#10B981;"></i> פרחים</td><td><input type="number" id="setDeliveryFlowersBase" min="0" step="1" value="20" style="width:70px;"></td><td><input type="number" id="setDeliveryFlowersKm" min="0" step="0.5" value="3.5" style="width:70px;"></td></tr>
+                                    <tr><td><i class="fas fa-file-alt" style="color:#2563EB;"></i> מסמכים</td><td><input type="number" id="setDeliveryDocsBase" min="0" step="1" value="10" style="width:70px;"></td><td><input type="number" id="setDeliveryDocsKm" min="0" step="0.5" value="2.5" style="width:70px;"></td></tr>
+                                    <tr><td><i class="fas fa-box" style="color:#D4A843;"></i> חבילות</td><td><input type="number" id="setDeliveryPackageBase" min="0" step="1" value="18" style="width:70px;"></td><td><input type="number" id="setDeliveryPackageKm" min="0" step="0.5" value="4" style="width:70px;"></td></tr>
+                                    <tr><td><i class="fas fa-globe" style="color:#0891B2;"></i> דואר בינלאומי</td><td><input type="number" id="setDeliveryIntlBase" min="0" step="1" value="35" style="width:70px;"></td><td><input type="number" id="setDeliveryIntlKm" min="0" step="0.5" value="0" style="width:70px;"></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-row" style="margin-top:12px;">
+                            <div class="form-group">
+                                <label>תוספת משקל מעל 5 ק"ג (₪)</label>
+                                <input type="number" id="setDeliveryHeavy" min="0" step="1" value="5">
+                            </div>
+                            <div class="form-group">
+                                <label>תוספת דחוף (%)</label>
+                                <input type="number" id="setDeliveryUrgent" min="0" step="5" value="50">
+                            </div>
                         </div>
                         <hr style="margin:20px 0;border:none;border-top:1px solid #e0e0e0;">
                         <h3 style="font-size:16px;margin-bottom:12px;"><i class="fas fa-taxi"></i> תעריפי מוניות</h3>

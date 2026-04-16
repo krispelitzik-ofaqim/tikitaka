@@ -56,6 +56,24 @@ function loadSettings() {
     document.getElementById('setTaxiPerKm').value = s.taxiPerKm !== undefined ? s.taxiPerKm : 3;
     document.getElementById('setTaxiNight').value = s.taxiNightSurcharge !== undefined ? s.taxiNightSurcharge : 25;
     document.getElementById('setTaxiShabbat').value = s.taxiShabbatSurcharge !== undefined ? s.taxiShabbatSurcharge : 25;
+    document.getElementById('setDriverCommission').value = s.driverCommission !== undefined ? s.driverCommission : 20;
+    document.getElementById('setCourierCommission').value = s.courierCommission !== undefined ? s.courierCommission : 20;
+    document.getElementById('setSupplierCommission').value = s.supplierCommission !== undefined ? s.supplierCommission : 10;
+    document.getElementById('setPaymentFrequency').value = s.paymentFrequency || 'weekly';
+    document.getElementById('setDeliveryFoodBase').value = s.deliveryFoodBase !== undefined ? s.deliveryFoodBase : 12;
+    document.getElementById('setDeliveryFoodKm').value = s.deliveryFoodKm !== undefined ? s.deliveryFoodKm : 3;
+    document.getElementById('setDeliverySweetsBase').value = s.deliverySweetsBase !== undefined ? s.deliverySweetsBase : 15;
+    document.getElementById('setDeliverySweetsKm').value = s.deliverySweetsKm !== undefined ? s.deliverySweetsKm : 3;
+    document.getElementById('setDeliveryFlowersBase').value = s.deliveryFlowersBase !== undefined ? s.deliveryFlowersBase : 20;
+    document.getElementById('setDeliveryFlowersKm').value = s.deliveryFlowersKm !== undefined ? s.deliveryFlowersKm : 3.5;
+    document.getElementById('setDeliveryDocsBase').value = s.deliveryDocsBase !== undefined ? s.deliveryDocsBase : 10;
+    document.getElementById('setDeliveryDocsKm').value = s.deliveryDocsKm !== undefined ? s.deliveryDocsKm : 2.5;
+    document.getElementById('setDeliveryPackageBase').value = s.deliveryPackageBase !== undefined ? s.deliveryPackageBase : 18;
+    document.getElementById('setDeliveryPackageKm').value = s.deliveryPackageKm !== undefined ? s.deliveryPackageKm : 4;
+    document.getElementById('setDeliveryIntlBase').value = s.deliveryIntlBase !== undefined ? s.deliveryIntlBase : 35;
+    document.getElementById('setDeliveryIntlKm').value = s.deliveryIntlKm !== undefined ? s.deliveryIntlKm : 0;
+    document.getElementById('setDeliveryHeavy').value = s.deliveryHeavy !== undefined ? s.deliveryHeavy : 5;
+    document.getElementById('setDeliveryUrgent').value = s.deliveryUrgent !== undefined ? s.deliveryUrgent : 50;
     const services = s.servicesVisible || {};
     document.querySelectorAll('.svc-toggle').forEach(cb => {
         const key = cb.dataset.key;
@@ -129,6 +147,24 @@ function saveSettings() {
     });
     const newPwd = document.getElementById('setAdminPwd').value.trim();
     if (newPwd) s.adminPassword = newPwd;
+    s.driverCommission = parseFloat(document.getElementById('setDriverCommission').value) || 20;
+    s.courierCommission = parseFloat(document.getElementById('setCourierCommission').value) || 20;
+    s.supplierCommission = parseFloat(document.getElementById('setSupplierCommission').value) || 10;
+    s.paymentFrequency = document.getElementById('setPaymentFrequency').value || 'weekly';
+    s.deliveryFoodBase = parseFloat(document.getElementById('setDeliveryFoodBase').value) || 12;
+    s.deliveryFoodKm = parseFloat(document.getElementById('setDeliveryFoodKm').value) || 3;
+    s.deliverySweetsBase = parseFloat(document.getElementById('setDeliverySweetsBase').value) || 15;
+    s.deliverySweetsKm = parseFloat(document.getElementById('setDeliverySweetsKm').value) || 3;
+    s.deliveryFlowersBase = parseFloat(document.getElementById('setDeliveryFlowersBase').value) || 20;
+    s.deliveryFlowersKm = parseFloat(document.getElementById('setDeliveryFlowersKm').value) || 3.5;
+    s.deliveryDocsBase = parseFloat(document.getElementById('setDeliveryDocsBase').value) || 10;
+    s.deliveryDocsKm = parseFloat(document.getElementById('setDeliveryDocsKm').value) || 2.5;
+    s.deliveryPackageBase = parseFloat(document.getElementById('setDeliveryPackageBase').value) || 18;
+    s.deliveryPackageKm = parseFloat(document.getElementById('setDeliveryPackageKm').value) || 4;
+    s.deliveryIntlBase = parseFloat(document.getElementById('setDeliveryIntlBase').value) || 35;
+    s.deliveryIntlKm = parseFloat(document.getElementById('setDeliveryIntlKm').value) || 0;
+    s.deliveryHeavy = parseFloat(document.getElementById('setDeliveryHeavy').value) || 5;
+    s.deliveryUrgent = parseFloat(document.getElementById('setDeliveryUrgent').value) || 50;
     saveSettingsObj(s);
     document.getElementById('setAdminPwd').value = '';
     alert('ההגדרות נשמרו!');
@@ -829,6 +865,8 @@ function getTabTitle(tab) {
         'rentals': 'השכרות'
     };
     titles['settlement'] = 'התחשבנות נהגים';
+    titles['courierSettlement'] = 'התחשבנות שליחים';
+    titles['supplierSettlement'] = 'התחשבנות ספקים';
     return titles[tab] || '';
 }
 
@@ -1833,6 +1871,12 @@ showTab = function(tab) {
     }
     if (tab === 'settlement') {
         loadSettlement();
+    }
+    if (tab === 'courierSettlement') {
+        loadCourierSettlement();
+    }
+    if (tab === 'supplierSettlement') {
+        loadSupplierSettlement();
     }
     if (tab === 'analytics') {
         loadAnalytics();
@@ -3435,7 +3479,18 @@ function exportAccountingCSV() {
 // ============================================
 // SETTLEMENT (Driver Billing) — 20% Commission
 // ============================================
-const COMMISSION_RATE = 0.20;
+function getDriverCommissionRate() {
+    const s = getSettings();
+    return (s.driverCommission !== undefined ? s.driverCommission : 20) / 100;
+}
+function getCourierCommissionRate() {
+    const s = getSettings();
+    return (s.courierCommission !== undefined ? s.courierCommission : 20) / 100;
+}
+function getSupplierCommissionRate() {
+    const s = getSettings();
+    return (s.supplierCommission !== undefined ? s.supplierCommission : 10) / 100;
+}
 
 function loadSettlement() {
     populateSettlementDrivers();
@@ -3496,7 +3551,7 @@ function renderSettlement() {
     const settlements = DB.get('settlements');
 
     const totalRevenue = rides.reduce((s, r) => s + (r.estimatedPrice || 0), 0);
-    const totalCommission = Math.round(totalRevenue * COMMISSION_RATE);
+    const totalCommission = Math.round(totalRevenue * getDriverCommissionRate());
     const totalDriverPay = totalRevenue - totalCommission;
     const totalPaid = settlements.reduce((s, p) => s + (p.amount || 0), 0);
 
@@ -3530,7 +3585,7 @@ function renderSettlementDriverCards(rides, drivers) {
         const driver = drivers.find(d => d.id === driverId);
         const name = driver ? driver.name : driverId;
         const photo = driver && driver.photo ? `<img src="${driver.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">` : '<div style="width:44px;height:44px;border-radius:50%;background:#C41E2F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="fas fa-user"></i></div>';
-        const commission = Math.round(data.total * COMMISSION_RATE);
+        const commission = Math.round(data.total * getDriverCommissionRate());
         const driverPay = data.total - commission;
         const paidTotal = settlements.filter(s => s.driverId === driverId).reduce((s, p) => s + (p.amount || 0), 0);
         const balance = driverPay - paidTotal;
@@ -3578,7 +3633,7 @@ function renderSettlementTable(rides, drivers) {
     tbody.innerHTML = sorted.map(r => {
         const driver = drivers.find(d => d.id === r.driverId);
         const price = r.estimatedPrice || 0;
-        const commission = Math.round(price * COMMISSION_RATE);
+        const commission = Math.round(price * getDriverCommissionRate());
         const driverPay = price - commission;
         const date = r.createdAt ? new Date(r.createdAt) : null;
         const dateStr = date ? date.toLocaleDateString('he-IL') + ' ' + date.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'}) : '-';
@@ -3628,7 +3683,7 @@ function markSettlementPaid() {
     });
     let count = 0;
     Object.entries(byDriver).forEach(([driverId, total]) => {
-        const driverPay = total - Math.round(total * COMMISSION_RATE);
+        const driverPay = total - Math.round(total * getDriverCommissionRate());
         const paidTotal = settlements.filter(s => s.driverId === driverId).reduce((s, p) => s + (p.amount || 0), 0);
         const balance = driverPay - paidTotal;
         if (balance > 0) {
@@ -3681,7 +3736,7 @@ function exportSettlementCSV() {
     rides.forEach(r => {
         const driver = drivers.find(d => d.id === r.driverId);
         const price = r.estimatedPrice || 0;
-        const commission = Math.round(price * COMMISSION_RATE);
+        const commission = Math.round(price * getDriverCommissionRate());
         const driverPay = price - commission;
         const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('he-IL') : '';
         const pay = ({cash:'מזומן',card:'אשראי',bit:'ביט',app:'אפליקציה'})[r.paymentMethod] || '';
@@ -3692,6 +3747,325 @@ function exportSettlementCSV() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `settlement_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ============================================
+// COURIER SETTLEMENT
+// ============================================
+function loadCourierSettlement() {
+    populateCourierSettlementList();
+    setCourierSettlementDefaults();
+    renderCourierSettlement();
+}
+
+function populateCourierSettlementList() {
+    const sel = document.getElementById('courierSettlementCourier');
+    if (!sel) return;
+    const couriers = DB.get('couriers');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="all">כל השליחים</option>';
+    couriers.forEach(c => { sel.innerHTML += `<option value="${c.id}">${escapeHtml(c.name)}</option>`; });
+    sel.value = cur || 'all';
+}
+
+function setCourierSettlementDefaults() {
+    const period = (document.getElementById('courierSettlementPeriod') || {}).value || 'week';
+    const now = new Date();
+    const from = document.getElementById('courierSettlementFrom');
+    const to = document.getElementById('courierSettlementTo');
+    if (!from || !to) return;
+    to.value = now.toISOString().slice(0, 10);
+    if (period === 'week') { const d = new Date(now); d.setDate(d.getDate() - 7); from.value = d.toISOString().slice(0, 10); }
+    else if (period === 'month') { const d = new Date(now); d.setMonth(d.getMonth() - 1); from.value = d.toISOString().slice(0, 10); }
+}
+function setCourierSettlementPeriod() {
+    if (document.getElementById('courierSettlementPeriod').value !== 'custom') { setCourierSettlementDefaults(); renderCourierSettlement(); }
+}
+
+function getCourierSettlementOrders() {
+    const filter = (document.getElementById('courierSettlementCourier') || {}).value || 'all';
+    const fromDate = (document.getElementById('courierSettlementFrom') || {}).value || '';
+    const toDate = (document.getElementById('courierSettlementTo') || {}).value || '';
+    let orders = DB.get('orders').filter(o => o.status === 'delivered' && o.courierId);
+    if (filter !== 'all') orders = orders.filter(o => o.courierId === filter);
+    if (fromDate) orders = orders.filter(o => o.createdAt && o.createdAt.slice(0, 10) >= fromDate);
+    if (toDate) orders = orders.filter(o => o.createdAt && o.createdAt.slice(0, 10) <= toDate);
+    return orders;
+}
+
+function renderCourierSettlement() {
+    const orders = getCourierSettlementOrders();
+    const couriers = DB.get('couriers');
+    const rate = getCourierCommissionRate();
+    const rateDisplay = Math.round(rate * 100);
+
+    const totalDeliveryFees = orders.reduce((s, o) => s + (o.deliveryFee || 0), 0);
+    const totalCommission = Math.round(totalDeliveryFees * rate);
+    const totalCourierPay = totalDeliveryFees - totalCommission;
+
+    const statsEl = document.getElementById('courierSettlementStats');
+    if (statsEl) {
+        statsEl.innerHTML = `
+            <div class="stat-card"><div class="stat-number">${orders.length}</div><div class="stat-label">משלוחים</div></div>
+            <div class="stat-card"><div class="stat-number">₪${totalDeliveryFees.toLocaleString()}</div><div class="stat-label">דמי משלוח</div></div>
+            <div class="stat-card" style="border-right:3px solid #C41E2F;"><div class="stat-number">₪${totalCommission.toLocaleString()}</div><div class="stat-label">עמלת טיקי טאקה (${rateDisplay}%)</div></div>
+            <div class="stat-card" style="border-right:3px solid #059669;"><div class="stat-number">₪${totalCourierPay.toLocaleString()}</div><div class="stat-label">לתשלום לשליחים</div></div>`;
+    }
+
+    const byC = {};
+    orders.forEach(o => {
+        if (!byC[o.courierId]) byC[o.courierId] = { orders: [], total: 0 };
+        byC[o.courierId].orders.push(o);
+        byC[o.courierId].total += o.deliveryFee || 0;
+    });
+    const payments = DB.get('settlements').filter(s => s.type === 'courier');
+    const cardsEl = document.getElementById('courierSettlementCards');
+    if (cardsEl) {
+        let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">';
+        Object.entries(byC).forEach(([cId, data]) => {
+            const courier = couriers.find(c => c.id === cId);
+            const name = courier ? courier.name : cId;
+            const commission = Math.round(data.total * rate);
+            const courierPay = data.total - commission;
+            const paidTotal = payments.filter(p => p.targetId === cId).reduce((s, p) => s + (p.amount || 0), 0);
+            const balance = courierPay - paidTotal;
+            const balColor = balance > 0 ? '#C41E2F' : '#059669';
+            html += `<div style="background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="width:44px;height:44px;border-radius:50%;background:#7C3AED;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="fas fa-motorcycle"></i></div>
+                    <div><strong>${escapeHtml(name)}</strong><div style="font-size:12px;color:#888;">${data.orders.length} משלוחים</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;">
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">דמי משלוח</div><div style="font-weight:700;">₪${data.total}</div></div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">עמלה</div><div style="font-weight:700;color:#C41E2F;">₪${commission}</div></div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">לשליח</div><div style="font-weight:700;color:#059669;">₪${courierPay}</div></div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">${balance > 0 ? 'חוב' : 'מסולק'}</div><div style="font-weight:700;color:${balColor};">₪${Math.abs(balance)}</div></div>
+                </div>
+                ${balance > 0 ? `<button onclick="paySettlementTarget('courier','${cId}','${escapeHtml(name)}',${courierPay})" class="btn btn-primary" style="width:100%;margin-top:10px;background:#059669;justify-content:center;font-size:13px;padding:8px;"><i class="fas fa-money-bill-wave"></i> סמן תשלום ₪${courierPay}</button>` : ''}
+            </div>`;
+        });
+        html += '</div>';
+        cardsEl.innerHTML = Object.keys(byC).length ? html : '<div style="text-align:center;color:#888;padding:20px;">אין משלוחים בתקופה</div>';
+    }
+
+    const tbody = document.getElementById('courierSettlementBody');
+    if (tbody) {
+        tbody.innerHTML = orders.slice().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).map(o => {
+            const courier = couriers.find(c => c.id === o.courierId);
+            const fee = o.deliveryFee || 0;
+            const comm = Math.round(fee * rate);
+            const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('he-IL') : '-';
+            return `<tr><td>${o.id}</td><td>${date}</td><td>${courier ? escapeHtml(courier.name) : '-'}</td><td>${o.category || '-'}</td><td>${(o.distance || 0).toFixed(1)}</td><td style="font-weight:700;">₪${fee}</td><td style="color:#C41E2F;">₪${comm}</td><td style="color:#059669;">₪${fee - comm}</td><td><span style="background:#d1fae5;color:#059669;padding:2px 8px;border-radius:10px;font-size:11px;">נמסר</span></td></tr>`;
+        }).join('');
+    }
+
+    renderGenericPaymentHistory('courierPaymentHistory', 'courier');
+}
+
+function markCourierSettlementPaid() { markGenericSettlementPaid('courier', getCourierSettlementOrders, getCourierCommissionRate, 'courierId', 'deliveryFee', renderCourierSettlement); }
+function exportCourierSettlementCSV() { exportGenericCSV('courier', getCourierSettlementOrders, getCourierCommissionRate, 'courierId', 'deliveryFee'); }
+
+// ============================================
+// SUPPLIER SETTLEMENT
+// ============================================
+function loadSupplierSettlement() {
+    populateSupplierSettlementList();
+    setSupplierSettlementDefaults();
+    renderSupplierSettlement();
+}
+
+function populateSupplierSettlementList() {
+    const sel = document.getElementById('supplierSettlementSupplier');
+    if (!sel) return;
+    const suppliers = DB.get('suppliers');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="all">כל הספקים</option>';
+    suppliers.forEach(s => { sel.innerHTML += `<option value="${s.id}">${escapeHtml(s.name)}</option>`; });
+    sel.value = cur || 'all';
+}
+
+function setSupplierSettlementDefaults() {
+    const period = (document.getElementById('supplierSettlementPeriod') || {}).value || 'week';
+    const now = new Date();
+    const from = document.getElementById('supplierSettlementFrom');
+    const to = document.getElementById('supplierSettlementTo');
+    if (!from || !to) return;
+    to.value = now.toISOString().slice(0, 10);
+    if (period === 'week') { const d = new Date(now); d.setDate(d.getDate() - 7); from.value = d.toISOString().slice(0, 10); }
+    else if (period === 'month') { const d = new Date(now); d.setMonth(d.getMonth() - 1); from.value = d.toISOString().slice(0, 10); }
+}
+function setSupplierSettlementPeriod() {
+    if (document.getElementById('supplierSettlementPeriod').value !== 'custom') { setSupplierSettlementDefaults(); renderSupplierSettlement(); }
+}
+
+function getSupplierSettlementOrders() {
+    const filter = (document.getElementById('supplierSettlementSupplier') || {}).value || 'all';
+    const fromDate = (document.getElementById('supplierSettlementFrom') || {}).value || '';
+    const toDate = (document.getElementById('supplierSettlementTo') || {}).value || '';
+    let orders = DB.get('orders').filter(o => o.status === 'delivered' && o.supplierId);
+    if (filter !== 'all') orders = orders.filter(o => o.supplierId === filter);
+    if (fromDate) orders = orders.filter(o => o.createdAt && o.createdAt.slice(0, 10) >= fromDate);
+    if (toDate) orders = orders.filter(o => o.createdAt && o.createdAt.slice(0, 10) <= toDate);
+    return orders;
+}
+
+function renderSupplierSettlement() {
+    const orders = getSupplierSettlementOrders();
+    const suppliers = DB.get('suppliers');
+    const rate = getSupplierCommissionRate();
+    const rateDisplay = Math.round(rate * 100);
+
+    const totalProductValue = orders.reduce((s, o) => s + (o.totalPrice || o.price || 0), 0);
+    const totalCommission = Math.round(totalProductValue * rate);
+    const totalSupplierPay = totalProductValue - totalCommission;
+
+    const statsEl = document.getElementById('supplierSettlementStats');
+    if (statsEl) {
+        statsEl.innerHTML = `
+            <div class="stat-card"><div class="stat-number">${orders.length}</div><div class="stat-label">הזמנות</div></div>
+            <div class="stat-card"><div class="stat-number">₪${totalProductValue.toLocaleString()}</div><div class="stat-label">ערך מוצרים</div></div>
+            <div class="stat-card" style="border-right:3px solid #C41E2F;"><div class="stat-number">₪${totalCommission.toLocaleString()}</div><div class="stat-label">עמלת טיקי טאקה (${rateDisplay}%)</div></div>
+            <div class="stat-card" style="border-right:3px solid #059669;"><div class="stat-number">₪${totalSupplierPay.toLocaleString()}</div><div class="stat-label">להעברה לספקים</div></div>`;
+    }
+
+    const byS = {};
+    orders.forEach(o => {
+        const sId = o.supplierId;
+        if (!byS[sId]) byS[sId] = { orders: [], total: 0 };
+        byS[sId].orders.push(o);
+        byS[sId].total += o.totalPrice || o.price || 0;
+    });
+    const payments = DB.get('settlements').filter(s => s.type === 'supplier');
+    const cardsEl = document.getElementById('supplierSettlementCards');
+    if (cardsEl) {
+        let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">';
+        Object.entries(byS).forEach(([sId, data]) => {
+            const supplier = suppliers.find(s => s.id === sId);
+            const name = supplier ? supplier.name : sId;
+            const commission = Math.round(data.total * rate);
+            const supplierPay = data.total - commission;
+            const paidTotal = payments.filter(p => p.targetId === sId).reduce((s, p) => s + (p.amount || 0), 0);
+            const balance = supplierPay - paidTotal;
+            const balColor = balance > 0 ? '#C41E2F' : '#059669';
+            html += `<div style="background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="width:44px;height:44px;border-radius:50%;background:#D4A843;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="fas fa-store"></i></div>
+                    <div><strong>${escapeHtml(name)}</strong><div style="font-size:12px;color:#888;">${data.orders.length} הזמנות</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;">
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">ערך מוצרים</div><div style="font-weight:700;">₪${data.total}</div></div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">עמלה</div><div style="font-weight:700;color:#C41E2F;">₪${commission}</div></div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">לספק</div><div style="font-weight:700;color:#059669;">₪${supplierPay}</div></div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;"><div style="color:#888;font-size:11px;">${balance > 0 ? 'חוב' : 'מסולק'}</div><div style="font-weight:700;color:${balColor};">₪${Math.abs(balance)}</div></div>
+                </div>
+                ${balance > 0 ? `<button onclick="paySettlementTarget('supplier','${sId}','${escapeHtml(name)}',${supplierPay})" class="btn btn-primary" style="width:100%;margin-top:10px;background:#059669;justify-content:center;font-size:13px;padding:8px;"><i class="fas fa-money-bill-wave"></i> סמן תשלום ₪${supplierPay}</button>` : ''}
+            </div>`;
+        });
+        html += '</div>';
+        cardsEl.innerHTML = Object.keys(byS).length ? html : '<div style="text-align:center;color:#888;padding:20px;">אין הזמנות בתקופה</div>';
+    }
+
+    const tbody = document.getElementById('supplierSettlementBody');
+    if (tbody) {
+        tbody.innerHTML = orders.slice().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).map(o => {
+            const supplier = suppliers.find(s => s.id === o.supplierId);
+            const price = o.totalPrice || o.price || 0;
+            const comm = Math.round(price * rate);
+            const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('he-IL') : '-';
+            return `<tr><td>${o.id}</td><td>${date}</td><td>${supplier ? escapeHtml(supplier.name) : '-'}</td><td>${o.itemsSummary || o.category || '-'}</td><td style="font-weight:700;">₪${price}</td><td style="color:#C41E2F;">₪${comm}</td><td style="color:#059669;">₪${price - comm}</td><td><span style="background:#d1fae5;color:#059669;padding:2px 8px;border-radius:10px;font-size:11px;">נמסר</span></td></tr>`;
+        }).join('');
+    }
+
+    renderGenericPaymentHistory('supplierPaymentHistory', 'supplier');
+}
+
+function markSupplierSettlementPaid() { markGenericSettlementPaid('supplier', getSupplierSettlementOrders, getSupplierCommissionRate, 'supplierId', 'totalPrice', renderSupplierSettlement); }
+function exportSupplierSettlementCSV() { exportGenericCSV('supplier', getSupplierSettlementOrders, getSupplierCommissionRate, 'supplierId', 'totalPrice'); }
+
+// ============================================
+// SHARED SETTLEMENT HELPERS
+// ============================================
+function paySettlementTarget(type, targetId, name, amount) {
+    if (!confirm(`לסמן תשלום של ₪${amount} ל${name}?`)) return;
+    DB.add('settlements', {
+        id: 'PAY-' + Date.now().toString().slice(-6),
+        type,
+        targetId,
+        driverName: name,
+        amount,
+        date: new Date().toISOString(),
+        method: 'העברה בנקאית',
+        note: ''
+    });
+    if (type === 'courier') renderCourierSettlement();
+    else if (type === 'supplier') renderSupplierSettlement();
+    else renderSettlement();
+}
+
+function renderGenericPaymentHistory(wrapperId, type) {
+    const wrap = document.getElementById(wrapperId);
+    if (!wrap) return;
+    const payments = DB.get('settlements').filter(s => s.type === type).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    if (!payments.length) { wrap.innerHTML = '<div style="text-align:center;color:#888;padding:16px;">אין תשלומים עדיין</div>'; return; }
+    wrap.innerHTML = `<table class="admin-table"><thead><tr><th>מס׳</th><th>תאריך</th><th>שם</th><th>סכום</th><th>אמצעי</th></tr></thead><tbody>${payments.map(p => {
+        const date = p.date ? new Date(p.date).toLocaleDateString('he-IL') : '-';
+        return `<tr><td>${p.id}</td><td>${date}</td><td>${escapeHtml(p.driverName || '-')}</td><td style="font-weight:700;color:#059669;">₪${p.amount}</td><td>${escapeHtml(p.method || '-')}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function markGenericSettlementPaid(type, getOrdersFn, getRateFn, idField, priceField, renderFn) {
+    const orders = getOrdersFn();
+    const rate = getRateFn();
+    const payments = DB.get('settlements').filter(s => s.type === type);
+    const byTarget = {};
+    orders.forEach(o => {
+        const tId = o[idField];
+        if (!tId) return;
+        if (!byTarget[tId]) byTarget[tId] = 0;
+        byTarget[tId] += o[priceField] || o.totalPrice || o.price || 0;
+    });
+    let count = 0;
+    const allEntities = type === 'courier' ? DB.get('couriers') : DB.get('suppliers');
+    Object.entries(byTarget).forEach(([tId, total]) => {
+        const pay = total - Math.round(total * rate);
+        const paid = payments.filter(p => p.targetId === tId).reduce((s, p) => s + (p.amount || 0), 0);
+        const balance = pay - paid;
+        if (balance > 0) {
+            const entity = allEntities.find(e => e.id === tId);
+            DB.add('settlements', {
+                id: 'PAY-' + Date.now().toString().slice(-6) + '-' + (++count),
+                type, targetId: tId,
+                driverName: entity ? entity.name : tId,
+                amount: balance,
+                date: new Date().toISOString(),
+                method: 'סילוק תקופתי', note: ''
+            });
+        }
+    });
+    if (count > 0) { alert(`${count} ${type === 'courier' ? 'שליחים' : 'ספקים'} סומנו כשולמו`); renderFn(); }
+    else { alert('אין יתרות פתוחות'); }
+}
+
+function exportGenericCSV(type, getOrdersFn, getRateFn, idField, priceField) {
+    const orders = getOrdersFn();
+    const rate = getRateFn();
+    const entities = type === 'courier' ? DB.get('couriers') : DB.get('suppliers');
+    const label = type === 'courier' ? 'שליח' : 'ספק';
+    let csv = `\uFEFF"מס׳","תאריך","${label}","סכום","עמלה","לתשלום"\n`;
+    orders.forEach(o => {
+        const entity = entities.find(e => e.id === o[idField]);
+        const price = o[priceField] || o.totalPrice || o.price || 0;
+        const comm = Math.round(price * rate);
+        const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('he-IL') : '';
+        csv += `"${o.id}","${date}","${entity ? entity.name : ''}","${price}","${comm}","${price - comm}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${type}_settlement_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
