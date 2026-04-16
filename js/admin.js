@@ -4285,6 +4285,51 @@ function renderPasswordTable() {
     wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px;"><thead><tr style="background:#f8f9fa;"><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">שם</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">משתמש/טלפון</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">תפקיד</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">סיסמה</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">סטטוס</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">פעולות</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+function toggleSecurityUsersTable() {
+    const wrap = document.getElementById('securityUsersTable');
+    if (!wrap) return;
+    if (wrap.style.display !== 'none') {
+        wrap.style.display = 'none';
+        return;
+    }
+    const settings = getSettings();
+    const team = DB.get('teamMembers');
+    const roleLabels = {admin:'מנהל מערכת',dispatcher:'מוקדן',field_manager:'מנהל שטח',courier_manager:'מנהל שליחים',driver_manager:'מנהל נהגים',supplier_manager:'מנהל ספקים',accountant:'חשב',support:'תמיכה'};
+
+    let rows = `<tr style="background:#C41E2F;color:#fff;">
+        <td style="padding:10px 12px;border-radius:8px 0 0 0;font-weight:700;"><i class="fas fa-crown"></i> ${escapeHtml(settings.adminUsername || 'admin')}</td>
+        <td style="padding:10px 12px;">מנהל מערכת</td>
+        <td style="padding:10px 12px;font-family:monospace;letter-spacing:1px;">${escapeHtml(settings.adminPassword || 'admin')}</td>
+        <td style="padding:10px 12px;border-radius:0 8px 0 0;"><span style="background:rgba(255,255,255,0.2);padding:2px 10px;border-radius:10px;font-size:11px;">פעיל</span></td>
+    </tr>`;
+
+    team.forEach(m => {
+        const statusColor = m.status === 'active' ? '#059669' : '#dc3545';
+        const statusLabel = m.status === 'active' ? 'פעיל' : 'מושבת';
+        rows += `<tr style="border-bottom:1px solid #f0f0f0;">
+            <td style="padding:10px 12px;font-weight:600;">${escapeHtml(m.name)}</td>
+            <td style="padding:10px 12px;color:#666;">${roleLabels[m.role] || m.role}</td>
+            <td style="padding:10px 12px;font-family:monospace;letter-spacing:1px;">${m.password ? escapeHtml(m.password) : '<span style="color:#dc3545;font-family:inherit;">לא הוגדרה</span>'}</td>
+            <td style="padding:10px 12px;"><span style="color:${statusColor};font-size:12px;"><i class="fas fa-circle" style="font-size:8px;"></i> ${statusLabel}</span></td>
+        </tr>`;
+    });
+
+    wrap.innerHTML = `
+        <div style="background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;">
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead><tr style="background:#f8f9fa;">
+                    <th style="padding:8px 12px;text-align:right;color:#555;font-size:12px;">שם / משתמש</th>
+                    <th style="padding:8px 12px;text-align:right;color:#555;font-size:12px;">תפקיד</th>
+                    <th style="padding:8px 12px;text-align:right;color:#555;font-size:12px;">סיסמה</th>
+                    <th style="padding:8px 12px;text-align:right;color:#555;font-size:12px;">סטטוס</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+        <p style="font-size:11px;color:#dc3545;margin-top:8px;"><i class="fas fa-exclamation-triangle"></i> הסיסמאות מוצגות בגלוי. סגור טבלה זו כשסיימת.</p>`;
+    wrap.style.display = 'block';
+}
+
 function promptChangePassword(id) {
     const newPwd = prompt('הזן סיסמה חדשה:');
     if (newPwd === null || !newPwd.trim()) return;

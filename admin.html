@@ -889,7 +889,11 @@
                             <label>סיסמת שחזור מגיבוי</label>
                             <input type="password" id="setRestorePwd" placeholder="השאר ריק כדי לא לשנות">
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                            <button class="btn btn-small" onclick="toggleSecurityUsersTable()" style="background:#1a1a1a;color:white;border-radius:8px;"><i class="fas fa-users"></i> הצג משתמשים וסיסמאות</button>
+                        </div>
+                        <div id="securityUsersTable" style="display:none;margin-top:14px;"></div>
                         </div>
 
                     </div><!-- end right column -->
