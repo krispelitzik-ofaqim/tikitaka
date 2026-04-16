@@ -100,66 +100,91 @@
                 <span class="admin-badge">ניהול</span>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="sidebar-link active" onclick="showTab('dashboard')">
-                    <i class="fas fa-chart-line"></i> דשבורד
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('orders')">
-                    <i class="fas fa-shopping-bag"></i> הזמנות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('suppliers')">
-                    <i class="fas fa-store"></i> ספקים
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('customers')">
-                    <i class="fas fa-users"></i> לקוחות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('products')">
-                    <i class="fas fa-boxes"></i> מוצרים
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('maps')">
-                    <i class="fas fa-map"></i> מפות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('couriers')">
-                    <i class="fas fa-user-ninja"></i> שליחים
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('rides')">
-                    <i class="fas fa-taxi"></i> נסיעות (מוניות)
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('rentals')">
-                    <i class="fas fa-bicycle"></i> השכרות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('drivers')">
-                    <i class="fas fa-id-card"></i> נהגים - מוניות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('fleet')">
-                    <i class="fas fa-motorcycle"></i> צי תנועה - שליחויות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('photos')">
-                    <i class="fas fa-images"></i> תמונות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('analytics')">
-                    <i class="fas fa-chart-bar"></i> אנליטיקה
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('accounting')">
-                    <i class="fas fa-file-invoice-dollar"></i> הנהלת חשבונות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('customerView')">
-                    <i class="fas fa-eye"></i> תצוגת לקוח
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('settlement')">
-                    <i class="fas fa-handshake"></i> התחשבנות נהגים
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('courierSettlement')">
-                    <i class="fas fa-motorcycle"></i> התחשבנות שליחים
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('supplierSettlement')">
-                    <i class="fas fa-store"></i> התחשבנות ספקים
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('team')">
-                    <i class="fas fa-users-cog"></i> ניהול צוות
-                </a>
-                <a href="#" class="sidebar-link" onclick="showTab('settings')">
-                    <i class="fas fa-cog"></i> הגדרות
-                </a>
+                <!-- ראשי -->
+                <div class="sidebar-group" style="background:rgba(196,30,47,0.08);margin:8px;border-radius:10px;padding:6px 0;">
+                    <div class="sidebar-group-title" style="padding:6px 20px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;">ראשי</div>
+                    <a href="#" class="sidebar-link active" onclick="showTab('dashboard')">
+                        <i class="fas fa-chart-line"></i> דשבורד
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('orders')">
+                        <i class="fas fa-shopping-bag"></i> הזמנות
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('rides')">
+                        <i class="fas fa-taxi"></i> נסיעות מוניות
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('maps')">
+                        <i class="fas fa-map"></i> מפה חיה
+                    </a>
+                </div>
+
+                <!-- אנשים -->
+                <div class="sidebar-group" style="background:rgba(5,150,105,0.08);margin:8px;border-radius:10px;padding:6px 0;">
+                    <div class="sidebar-group-title" style="padding:6px 20px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;">אנשים</div>
+                    <a href="#" class="sidebar-link" onclick="showTab('customers')">
+                        <i class="fas fa-users"></i> לקוחות
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('drivers')">
+                        <i class="fas fa-id-card"></i> נהגי מונית
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('couriers')">
+                        <i class="fas fa-user-ninja"></i> שליחים
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('suppliers')">
+                        <i class="fas fa-store"></i> ספקים
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('team')">
+                        <i class="fas fa-users-cog"></i> צוות ניהול
+                    </a>
+                </div>
+
+                <!-- עסק -->
+                <div class="sidebar-group" style="background:rgba(37,99,235,0.08);margin:8px;border-radius:10px;padding:6px 0;">
+                    <div class="sidebar-group-title" style="padding:6px 20px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;">עסק</div>
+                    <a href="#" class="sidebar-link" onclick="showTab('products')">
+                        <i class="fas fa-boxes"></i> מוצרים
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('fleet')">
+                        <i class="fas fa-motorcycle"></i> צי תנועה
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('rentals')">
+                        <i class="fas fa-bicycle"></i> השכרות
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('photos')">
+                        <i class="fas fa-images"></i> תמונות
+                    </a>
+                </div>
+
+                <!-- כספים -->
+                <div class="sidebar-group" style="background:rgba(212,168,67,0.08);margin:8px;border-radius:10px;padding:6px 0;">
+                    <div class="sidebar-group-title" style="padding:6px 20px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;">כספים</div>
+                    <a href="#" class="sidebar-link" onclick="showTab('accounting')">
+                        <i class="fas fa-file-invoice-dollar"></i> הנה"ח
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('analytics')">
+                        <i class="fas fa-chart-bar"></i> אנליטיקה
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('settlement')">
+                        <i class="fas fa-handshake"></i> התחשבנות נהגים
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('courierSettlement')">
+                        <i class="fas fa-motorcycle"></i> התחשבנות שליחים
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('supplierSettlement')">
+                        <i class="fas fa-store"></i> התחשבנות ספקים
+                    </a>
+                </div>
+
+                <!-- מערכת -->
+                <div class="sidebar-group" style="background:rgba(107,114,128,0.08);margin:8px;border-radius:10px;padding:6px 0;">
+                    <div class="sidebar-group-title" style="padding:6px 20px;font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;">מערכת</div>
+                    <a href="#" class="sidebar-link" onclick="showTab('customerView')">
+                        <i class="fas fa-eye"></i> תצוגה מקדימה
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showTab('settings')">
+                        <i class="fas fa-cog"></i> הגדרות
+                    </a>
+                </div>
+
                 <a href="index.html" class="sidebar-link sidebar-back">
                     <i class="fas fa-arrow-right"></i> חזור לאתר
                 </a>
