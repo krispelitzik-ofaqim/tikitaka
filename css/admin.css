@@ -170,12 +170,15 @@
     font-size: 22px;
 }
 
-.stat-card-info h3 {
+.stat-card-info h3,
+.stat-number {
     font-size: 28px;
+    font-weight: 900;
     color: var(--dark);
 }
 
-.stat-card-info p {
+.stat-card-info p,
+.stat-label {
     color: var(--gray);
     font-size: 14px;
 }
@@ -404,7 +407,7 @@
 
 /* Settings */
 .settings-form {
-    max-width: 500px;
+    max-width: 100%;
 }
 
 .settings-form .form-group {
@@ -415,21 +418,75 @@
     display: block;
     font-weight: 700;
     margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
 }
 
-.settings-form input {
+.settings-form input,
+.settings-form select {
     width: 100%;
-    padding: 12px 16px;
+    padding: 14px 18px;
     border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    border-radius: 10px;
     font-family: 'Heebo', sans-serif;
     font-size: 16px;
     direction: rtl;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
 }
 
-.settings-form input:focus {
+.settings-form input:focus,
+.settings-form select:focus {
     border-color: var(--primary);
     outline: none;
+    box-shadow: 0 0 0 3px rgba(196,30,47,0.1);
+}
+
+.settings-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Admin panel large screen optimization */
+@media (min-width: 1200px) {
+    .tab-content { padding: 36px 48px; }
+    .admin-section { padding: 32px; border-radius: 16px; }
+    .admin-section h2 { font-size: 22px; }
+    .stats-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .stat-card { padding: 28px; }
+    .stat-number { font-size: 30px !important; }
+    .admin-table th, .admin-table td { padding: 14px 20px; font-size: 15px; }
+}
+
+@media (min-width: 1600px) {
+    .tab-content { padding: 40px 64px; }
+    .admin-section { padding: 36px; }
+    .settings-form .form-row { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+/* iPad optimization */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .tab-content { padding: 24px; }
+    .settings-form input, .settings-form select { padding: 16px 18px; font-size: 17px; min-height: 52px; }
+    .btn, .btn-primary, .btn-small { min-height: 44px; font-size: 14px; }
+    .sidebar-link { padding: 16px 24px; font-size: 15px; }
+    .stat-card { padding: 20px; }
+}
+
+/* Touch-friendly elements */
+@media (pointer: coarse) {
+    .settings-form input, .settings-form select {
+        min-height: 50px;
+        font-size: 17px;
+    }
+    .btn, .btn-primary { min-height: 48px; }
+    .action-btn { min-height: 44px; padding: 10px 16px; font-size: 14px; }
+    .sidebar-link { padding: 16px 24px; min-height: 48px; }
+    .admin-table td, .admin-table th { padding: 14px 16px; }
+    label { font-size: 15px; }
+    select { min-height: 50px; }
 }
 
 /* Products Grid */
@@ -630,3 +687,110 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Global admin form improvements */
+.admin-section input[type="text"],
+.admin-section input[type="number"],
+.admin-section input[type="email"],
+.admin-section input[type="tel"],
+.admin-section input[type="date"],
+.admin-section input[type="password"],
+.admin-section select,
+.admin-section textarea {
+    padding: 12px 16px;
+    border: 2px solid #e5e5e5;
+    border-radius: 10px;
+    font-family: 'Heebo', sans-serif;
+    font-size: 15px;
+    direction: rtl;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.admin-section input:focus,
+.admin-section select:focus,
+.admin-section textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(196,30,47,0.08);
+}
+
+.admin-section label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.admin-section .form-group {
+    margin-bottom: 16px;
+}
+
+.admin-section h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+/* Better buttons for admin */
+.admin-section .btn,
+.admin-section .btn-primary {
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 24px;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.admin-section .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.admin-section .btn-small {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 8px;
+}
+
+/* Stat card improvements */
+.stat-card {
+    border-radius: 14px;
+    border: 1px solid #f0f0f0;
+}
+
+/* Better admin table */
+.admin-table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-table th {
+    background: #f8f9fa;
+    font-size: 13px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.admin-table td {
+    font-size: 14px;
+}
+
+.admin-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Smooth scrollbar */
+.admin-main::-webkit-scrollbar { width: 8px; }
+.admin-main::-webkit-scrollbar-track { background: #f0f2f5; }
+.admin-main::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.admin-main::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* Sidebar improvements */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
