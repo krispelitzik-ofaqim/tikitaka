@@ -4444,37 +4444,72 @@ function checkAutoBackup() {
     }
 }
 
+let _draggedBlock = null;
+
 function initSettingsDragDrop() {
+    const allBlocks = document.querySelectorAll('.settings-form [style*="cursor:grab"]');
+    allBlocks.forEach(block => {
+        block.draggable = true;
+
+        block.addEventListener('dragstart', e => {
+            _draggedBlock = block;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => block.classList.add('settings-block-dragging'), 0);
+        });
+
+        block.addEventListener('dragend', () => {
+            block.classList.remove('settings-block-dragging');
+            _draggedBlock = null;
+            document.querySelectorAll('.settings-block-over-top, .settings-block-over-bottom').forEach(el => {
+                el.classList.remove('settings-block-over-top', 'settings-block-over-bottom');
+            });
+        });
+
+        block.addEventListener('dragover', e => {
+            e.preventDefault();
+            if (!_draggedBlock || _draggedBlock === block) return;
+            e.dataTransfer.dropEffect = 'move';
+            const rect = block.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            block.classList.remove('settings-block-over-top', 'settings-block-over-bottom');
+            if (e.clientY < midY) {
+                block.classList.add('settings-block-over-top');
+            } else {
+                block.classList.add('settings-block-over-bottom');
+            }
+        });
+
+        block.addEventListener('dragleave', () => {
+            block.classList.remove('settings-block-over-top', 'settings-block-over-bottom');
+        });
+
+        block.addEventListener('drop', e => {
+            e.preventDefault();
+            block.classList.remove('settings-block-over-top', 'settings-block-over-bottom');
+            if (!_draggedBlock || _draggedBlock === block) return;
+            const rect = block.getBoundingClientRect();
+            const midY = rect.top + rect.height / 2;
+            const parent = block.parentNode;
+            if (e.clientY < midY) {
+                parent.insertBefore(_draggedBlock, block);
+            } else {
+                parent.insertBefore(_draggedBlock, block.nextSibling);
+            }
+        });
+    });
+
+    // Allow dropping on columns too (for moving between columns)
     document.querySelectorAll('.settings-form > div').forEach(col => {
-        const blocks = col.querySelectorAll('[style*="cursor:grab"]');
-        blocks.forEach(block => {
-            block.draggable = true;
-            block.addEventListener('dragstart', e => {
-                e.dataTransfer.effectAllowed = 'move';
-                block.classList.add('settings-block-dragging');
-                block._dragParent = col;
-            });
-            block.addEventListener('dragend', () => {
-                block.classList.remove('settings-block-dragging');
-                document.querySelectorAll('.settings-block-over').forEach(el => el.classList.remove('settings-block-over'));
-            });
-            block.addEventListener('dragover', e => {
+        col.addEventListener('dragover', e => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        col.addEventListener('drop', e => {
+            if (!_draggedBlock) return;
+            if (e.target === col || e.target.parentNode === col) {
                 e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                block.classList.add('settings-block-over');
-            });
-            block.addEventListener('dragleave', () => {
-                block.classList.remove('settings-block-over');
-            });
-            block.addEventListener('drop', e => {
-                e.preventDefault();
-                block.classList.remove('settings-block-over');
-                const dragging = col.querySelector('.settings-block-dragging') || document.querySelector('.settings-block-dragging');
-                if (dragging && dragging !== block) {
-                    const parent = block.parentNode;
-                    parent.insertBefore(dragging, block);
-                }
-            });
+                col.appendChild(_draggedBlock);
+            }
         });
     });
 }

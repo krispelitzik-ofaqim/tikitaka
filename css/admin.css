@@ -823,14 +823,26 @@
 
 /* Draggable blocks */
 .settings-block-dragging {
-    opacity: 0.5;
+    opacity: 0.4;
     border: 2px dashed #C41E2F !important;
+    transform: scale(0.98);
 }
-.settings-block-over {
-    border-top: 3px solid #C41E2F !important;
+.settings-block-over-top {
+    border-top: 4px solid #C41E2F !important;
+    margin-top: -2px;
+}
+.settings-block-over-bottom {
+    border-bottom: 4px solid #C41E2F !important;
+    margin-bottom: -2px;
+}
+[style*="cursor:grab"] {
+    transition: opacity 0.2s, transform 0.2s;
 }
 [style*="cursor:grab"]:active {
     cursor: grabbing !important;
+}
+[style*="cursor:grab"]:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
 
 /* Smooth scrollbar */
