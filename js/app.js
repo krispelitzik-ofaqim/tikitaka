@@ -221,29 +221,9 @@ function toggleMenu() {
 }
 
 // Submit order
-function submitOrder(e) {
-    e.preventDefault();
-
-    const order = {
-        id: 'TK-' + Date.now().toString().slice(-6),
-        customerName: document.getElementById('customerName').value,
-        customerPhone: document.getElementById('customerPhone').value,
-        customerEmail: document.getElementById('customerEmail').value || '',
-        category: document.getElementById('category').value,
-        pickupAddress: document.getElementById('pickupAddress').value,
-        deliveryAddress: document.getElementById('deliveryAddress').value,
-        notes: document.getElementById('notes').value || '',
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        estimatedDelivery: '30-45 דקות'
-    };
-
-    DB.add('orders', order);
-
-    document.getElementById('orderNumber').textContent = order.id;
-    document.getElementById('orderModal').classList.add('open');
-    document.getElementById('orderForm').reset();
-}
+// REMOVED: submitOrder() was dead code — not called from any HTML, and its DOM
+// elements (customerName, customerPhone, orderForm, etc.) do not exist.
+// function submitOrder(e) { ... }
 
 // Close modal
 function closeModal() {
@@ -457,6 +437,10 @@ let taxiTrackingInterval = null;
 let trackingMap = null;
 let selectedRatingStars = 0;
 const OFAKIM_CENTER = [31.3133, 34.6200];
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
 function haversineKm(a, b) {
     const toRad = d => d * Math.PI / 180;
@@ -838,6 +822,7 @@ function showNearbyDriversOnModalMap() {
         taxiNearbyMarkers.push(m);
     });
     const panel = document.getElementById('taxiNearbyDrivers');
+    if (!panel) return;
     if (withDist.length > 0) {
         const closest = withDist[0];
         panel.innerHTML = `<div style="background:#d1fae5;border:1px solid #059669;border-radius:8px;padding:10px;font-size:13px;"><i class="fas fa-taxi" style="color:#059669;"></i> <strong>${withDist.length} נהגים פנויים בסביבה</strong> · הקרוב: ${closest.d.name} (${closest.km.toFixed(1)} ק"מ · ~${Math.round(closest.km * 2)} דק׳)</div>`;
@@ -1183,13 +1168,17 @@ function submitRating(rideId) {
 }
 
 // Legacy: track by order ID
+// DEPRECATED: trackOrder() is not called from any HTML — kept for possible future use.
 function trackOrder() {
-    const trackNumber = document.getElementById('trackNumber') ? document.getElementById('trackNumber').value.trim() : '';
+    const trackNumberEl = document.getElementById('trackNumber');
+    if (!trackNumberEl) return;
+    const trackNumber = trackNumberEl.value.trim();
     if (!trackNumber) return;
 
     const orders = DB.get('orders');
     const order = orders.find(o => o.id === trackNumber);
     const resultDiv = document.getElementById('trackResult');
+    if (!resultDiv) return;
 
     if (order) {
         resultDiv.style.display = 'block';

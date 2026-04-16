@@ -22,7 +22,8 @@ function showTab(tab) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
-    event.currentTarget.classList.add('active');
+    const activeLink = document.querySelector(`.sidebar-link[onclick*="'${tab}'"]`);
+    if (activeLink) activeLink.classList.add('active');
     document.getElementById('pageTitle').textContent = getTabTitle(tab);
 
     if (tab === 'dashboard') loadDashboard();
@@ -105,7 +106,7 @@ function loadCoupons() {
                 <td>${c.minOrder ? '₪' + c.minOrder : '-'}</td>
                 <td>${c.expiresAt || '-'}</td>
                 <td>${c.usesLeft}</td>
-                <td><button class="action-btn cancel" onclick="deleteCoupon('${c.code}')"><i class="fas fa-trash"></i></button></td>
+                <td><button class="action-btn cancel" onclick="deleteCoupon('${c.code.replace(/'/g, "&#39;")}')"><i class="fas fa-trash"></i></button></td>
             </tr>
         `).join('') + '</tbody></table>';
 }
@@ -133,7 +134,7 @@ function saveSettings() {
     alert('ההגדרות נשמרו!');
 }
 
-const DB_KEYS = ['suppliers', 'orders', 'products', 'couriers', 'fleet', 'expenses', 'initialized', 'institutions', 'reviews', 'coupons', 'drivers', 'rides', 'customerProducts'];
+const DB_KEYS = ['suppliers', 'orders', 'products', 'couriers', 'fleet', 'expenses', 'initialized', 'institutions', 'reviews', 'coupons', 'drivers', 'rides', 'customerProducts', 'rideRatings', 'rentals'];
 
 function exportDB(mode = 'all') {
     const data = { exportedAt: new Date().toISOString(), mode, settings: getSettings() };
@@ -557,7 +558,7 @@ function seedFullDemo() {
             const supplier = {
                 id: sid,
                 name: supName,
-                category: cat === 'drinks' ? 'drinks' : (cat === 'office' ? 'office' : cat),
+                category: cat,
                 description: `ספק ${catLabels[cat]} מוביל באזור אופקים`,
                 phone: `050-${String(1000000 + catIdx * 100 + i * 10).slice(-7)}`,
                 email: `${sid}@demo.co.il`,
@@ -588,8 +589,8 @@ function seedFullDemo() {
                     name: prodName,
                     description: `${prodName} - איכות גבוהה מ${supName}`,
                     price: price,
-                    category: cat === 'drinks' ? 'drinks' : (cat === 'office' ? 'office' : cat),
-                    unit: cat === 'food' ? 'unit' : (cat === 'flowers' ? 'unit' : 'unit'),
+                    category: cat,
+                    unit: 'unit',
                     stock: 20 + Math.floor(Math.random() * 100),
                     minOrder: 1,
                     image: img,
@@ -928,7 +929,7 @@ function loadOrders(filter = 'all') {
 
     tbody.innerHTML = filtered.length === 0
         ? '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:30px;">אין הזמנות</td></tr>'
-        : filtered.reverse().map(o => `
+        : filtered.slice().reverse().map(o => `
             <tr>
                 <td><strong>${o.id}</strong></td>
                 <td>${o.customerName}</td>
@@ -1077,7 +1078,8 @@ function setPreviewSize(size) {
     const frame = document.getElementById('previewFrame');
     frame.className = `preview-frame ${size}`;
     document.querySelectorAll('.preview-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    const activeBtn = document.querySelector(`.preview-btn[onclick*="'${size}'"]`);
+    if (activeBtn) activeBtn.classList.add('active');
 }
 
 /* ===================== */
@@ -1579,7 +1581,8 @@ function renderFleetMarkers(mapInst, layerArr, offsetMap) {
 
 function showMapView(view) {
     document.querySelectorAll('#tab-maps .map-tab-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    const activeBtn = document.querySelector(`#tab-maps .map-tab-btn[onclick*="'${view}'"]`);
+    if (activeBtn) activeBtn.classList.add('active');
     loadMapMarkers(view);
 }
 
@@ -1664,7 +1667,8 @@ function loadDashMapMarkers(view) {
 
 function showDashMapView(view) {
     document.querySelectorAll('#tab-dashboard .map-tab-btn').forEach(b => b.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    const activeBtn = document.querySelector(`#tab-dashboard .map-tab-btn[onclick*="'${view}'"]`);
+    if (activeBtn) activeBtn.classList.add('active');
     dashMapCurrentView = view;
     loadDashMapMarkers(view);
 }

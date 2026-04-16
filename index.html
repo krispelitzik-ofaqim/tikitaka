@@ -6,7 +6,8 @@
     <title>TikiTaka - משלוחים באופקים</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#C41E2F">
-    <link rel="apple-touch-icon" href="images/logo.svg">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <link rel="icon" type="image/svg+xml" href="images/logo.svg">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
@@ -85,7 +86,7 @@
             <div class="nav-links">
                 <a href="#home" class="nav-link active">ראשי</a>
                 <a href="#services" class="nav-link">שירותים</a>
-                <a href="#order" class="nav-link">הזמן משלוח</a>
+                <a href="#services" class="nav-link">הזמן משלוח</a>
                 <a href="#track" class="nav-link">עקוב אחר משלוח</a>
                 <a href="suppliers.html" class="nav-link">כניסת ספקים</a>
                 <a href="institutions.html" class="nav-link">כניסת מוסדות</a>
@@ -105,7 +106,7 @@
             <button class="mobile-close" onclick="toggleMenu()"><i class="fas fa-times"></i></button>
             <a href="#home" class="mobile-link" onclick="toggleMenu()">ראשי</a>
             <a href="#services" class="mobile-link" onclick="toggleMenu()">שירותים</a>
-            <a href="#order" class="mobile-link" onclick="toggleMenu()">הזמן משלוח</a>
+            <a href="#services" class="mobile-link" onclick="toggleMenu()">הזמן משלוח</a>
             <a href="#track" class="mobile-link" onclick="toggleMenu()">עקוב אחר משלוח</a>
             <a href="suppliers.html" class="mobile-link" onclick="toggleMenu()">כניסת ספקים</a>
             <a href="institutions.html" class="mobile-link" onclick="toggleMenu()">כניסת מוסדות</a>
@@ -121,7 +122,7 @@
             <h1>משלוחים מהירים באופקים</h1>
             <p>אוכל, מעדנים ומסמכים - ישירות עד אליך</p>
             <div class="hero-buttons">
-                <a href="#order" class="btn btn-primary">
+                <a href="#services" class="btn btn-primary">
                     <i class="fas fa-motorcycle"></i> הזמן עכשיו
                 </a>
                 <a href="#services" class="btn btn-outline">
@@ -169,7 +170,7 @@
                     <p>מגוון מסעדות ומעדניות באופקים, ישירות עד הדלת שלך</p>
                     <p style="font-size:22px;font-weight:900;color:var(--primary);margin:12px 0 4px;">₪15 - ₪30</p>
                     <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">בהתאם למרחק בתוך אופקים</p>
-                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
+                    <a href="#services" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card" data-service="sweets">
                     <div class="service-icon">
@@ -179,7 +180,7 @@
                     <p>מגוון מתוקים, פיצוחים, סיגריות ושתייה חריפה מהספקים הטובים באופקים</p>
                     <p style="font-size:22px;font-weight:900;color:var(--primary);margin:12px 0 4px;">₪20 - ₪35</p>
                     <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">משלוח באריזה מאובטחת</p>
-                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
+                    <a href="#services" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card" data-service="flowers">
                     <div class="service-icon">
@@ -189,7 +190,7 @@
                     <p>זרי פרחים ועציצים לכל אירוע, ישירות מהחנויות באופקים</p>
                     <p style="font-size:22px;font-weight:900;color:var(--primary);margin:12px 0 4px;">₪20 - ₪35</p>
                     <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">כולל טיפול זהיר במשלוח</p>
-                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
+                    <a href="#services" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card" data-service="documents">
                     <div class="service-icon">
@@ -199,7 +200,7 @@
                     <p>משלוח מהיר ומאובטח של מסמכים רשמיים, חוזים ומעטפות בתוך אופקים</p>
                     <p style="font-size:22px;font-weight:900;color:var(--primary);margin:12px 0 4px;">₪20 - ₪45</p>
                     <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">רגיל / דחוף (עד 30 דק')</p>
-                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
+                    <a href="#services" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card" data-service="international">
                     <div class="service-icon">
@@ -209,7 +210,7 @@
                     <p>מסירת חבילות ומעטפות ליעדים בינלאומיים, כולל איסוף מהבית ומעקב משלוח</p>
                     <p style="font-size:22px;font-weight:900;color:var(--primary);margin:12px 0 4px;">החל מ-₪60</p>
                     <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">לפי יעד ומשקל</p>
-                    <a href="#order-form" class="btn btn-small">הזמן עכשיו</a>
+                    <a href="#services" class="btn btn-small">הזמן עכשיו</a>
                 </div>
                 <div class="service-card" data-service="rental" style="border-top:4px solid #10B981;">
                     <div class="service-icon" style="background:linear-gradient(135deg, #10B981, #34D399);">
@@ -320,7 +321,7 @@
                     <h3>קישורים</h3>
                     <a href="#home">ראשי</a>
                     <a href="#services">שירותים</a>
-                    <a href="#order">הזמן משלוח</a>
+                    <a href="#services">הזמן משלוח</a>
                     <a href="#track">עקוב אחר משלוח</a>
                     <a href="#privacy">פרטיות</a>
                 </div>
@@ -333,9 +334,10 @@
                 <div class="footer-col">
                     <h3>עקבו אחרינו</h3>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <!-- TODO: replace with actual social media URLs -->
+                        <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+                        <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i></a>
                     </div>
                 </div>
             </div>
@@ -546,6 +548,7 @@
 
                         <a href="#" onclick="openRideHistory();return false;" class="uber-history-link">הנסיעות הקודמות שלי</a>
                     </form>
+                    <div id="taxiNearbyDrivers" style="display:none;"></div>
                 </div>
             </div>
 
