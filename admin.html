@@ -837,7 +837,7 @@
                                 <input type="text" id="setBizAddress">
                             </div>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
                         <!-- Services toggles -->
                         <div style="background:#f8f9fa;border-radius:14px;padding:20px;margin-bottom:20px;border:1px solid #e5e5e5;cursor:grab;">
@@ -869,7 +869,7 @@
                                 <input type="checkbox" class="svc-toggle" data-key="rental" checked> <i class="fas fa-bicycle" style="color:#10B981;"></i> השכרת אופניים/קורקינט
                             </label>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
 
                         <!-- Security -->
@@ -889,9 +889,10 @@
                             <label>סיסמת שחזור מגיבוי</label>
                             <input type="password" id="setRestorePwd" placeholder="השאר ריק כדי לא לשנות">
                         </div>
-                        <div style="display:flex;gap:8px;margin-top:12px;">
-                            <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center;">
+                            <button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
                             <button class="btn btn-small" onclick="toggleSecurityUsersTable()" style="background:#1a1a1a;color:white;border-radius:8px;"><i class="fas fa-users"></i> הצג משתמשים וסיסמאות</button>
+                            <span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span>
                         </div>
                         <div id="securityUsersTable" style="display:none;margin-top:14px;"></div>
                         </div>
@@ -961,7 +962,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
 
                         <!-- Accounting -->
@@ -977,7 +978,7 @@
                                 <input type="number" id="setVat" min="0" max="100" step="0.5">
                             </div>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
 
                         <!-- Commissions -->
@@ -1007,7 +1008,7 @@
                                 </select>
                             </div>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
 
                         <!-- Delivery Tariffs -->
@@ -1036,7 +1037,7 @@
                                 <input type="number" id="setDeliveryUrgent" min="0" step="5" value="50">
                             </div>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
 
                         <!-- Taxi Tariffs -->
@@ -1062,7 +1063,7 @@
                                 <input type="number" id="setTaxiShabbat" min="0" step="1">
                             </div>
                         </div>
-                        <button class="btn btn-small block-save-btn" onclick="saveSettings();this.textContent='נשמר!';this.style.background='#059669';setTimeout(()=>{this.innerHTML='<i class=\'fas fa-check\'></i> שמור';this.style.background='#C41E2F';},1500);" style="background:#C41E2F;color:white;margin-top:12px;border-radius:8px;"><i class="fas fa-check"></i> שמור</button>
+                        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;"><button class="btn btn-small block-save-btn" onclick="blockSave(this)" style="background:#C41E2F;color:white;border-radius:8px;"><i class="fas fa-check"></i> שמור</button><span class="block-save-status" style="font-size:11px;color:#059669;display:none;"><i class="fas fa-check-circle"></i> <span class="status-text"></span></span></div>
                         </div>
 
                         <!-- Coupons -->

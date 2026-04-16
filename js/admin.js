@@ -4285,6 +4285,36 @@ function renderPasswordTable() {
     wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px;"><thead><tr style="background:#f8f9fa;"><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">שם</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">משתמש/טלפון</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">תפקיד</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">סיסמה</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">סטטוס</th><th style="padding:10px 14px;text-align:right;font-size:13px;color:#555;">פעולות</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
+function blockSave(btn) {
+    const block = btn.closest('[style*="cursor:grab"]');
+    const statusEl = block ? block.querySelector('.block-save-status') : (btn.parentElement.querySelector('.block-save-status'));
+    const h3 = block ? block.querySelector('h3') : null;
+    const blockName = h3 ? h3.textContent.trim() : 'בלוק';
+
+    const inputs = block ? block.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]):not([type="file"]), select, textarea') : [];
+    const changes = [];
+    inputs.forEach(inp => {
+        if (inp.value && inp.value.trim()) {
+            const label = inp.closest('.form-group')?.querySelector('label');
+            if (label) changes.push(label.textContent.trim());
+        }
+    });
+
+    saveSettings();
+
+    btn.textContent = 'נשמר!';
+    btn.style.background = '#059669';
+    setTimeout(() => { btn.innerHTML = '<i class="fas fa-check"></i> שמור'; btn.style.background = '#C41E2F'; }, 1500);
+
+    if (statusEl) {
+        const now = new Date();
+        const time = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+        const summary = changes.length > 0 ? changes.slice(0, 3).join(', ') : blockName;
+        statusEl.querySelector('.status-text').textContent = `נשמר ב-${time} — ${summary}`;
+        statusEl.style.display = 'inline';
+    }
+}
+
 function toggleSecurityUsersTable() {
     const wrap = document.getElementById('securityUsersTable');
     if (!wrap) return;
