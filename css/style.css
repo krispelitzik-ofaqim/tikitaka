@@ -13,6 +13,77 @@
     --gray: #6C757D;
     --dark: #212529;
     --shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+/* Day/Night Mode */
+body.day-mode {
+    --page-bg: #FFFFFF;
+    --page-text: #212529;
+    --card-bg: #F8F9FA;
+    --card-border: #E5E5E5;
+    --navbar-bg: rgba(255,255,255,0.97);
+    --section-bg: #FFFFFF;
+}
+body.night-mode {
+    --page-bg: #000000;
+    --page-text: #FFFFFF;
+    --card-bg: #111111;
+    --card-border: #222222;
+    --navbar-bg: rgba(0,0,0,0.97);
+    --section-bg: #0A0A0A;
+}
+
+body.night-mode {
+    background: var(--page-bg) !important;
+    color: var(--page-text) !important;
+}
+body.night-mode .navbar {
+    background: var(--navbar-bg) !important;
+}
+body.night-mode .navbar .nav-brand,
+body.night-mode .navbar .nav-link {
+    color: #fff !important;
+}
+body.night-mode .hero {
+    background: linear-gradient(135deg, #0a0a0a, #1a0008) !important;
+}
+body.night-mode .hero h1,
+body.night-mode .hero p {
+    color: #fff !important;
+}
+body.night-mode section {
+    background: var(--section-bg) !important;
+}
+body.night-mode .section-title,
+body.night-mode .section-subtitle {
+    color: var(--page-text) !important;
+}
+body.night-mode .service-card {
+    background: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: #fff !important;
+}
+body.night-mode .service-card h3 { color: #fff !important; }
+body.night-mode .service-card p { color: #aaa !important; }
+body.night-mode .feature-card {
+    background: var(--card-bg) !important;
+    border-color: var(--card-border) !important;
+    color: #fff !important;
+}
+body.night-mode .feature-card h3 { color: #fff !important; }
+body.night-mode .feature-card p { color: #aaa !important; }
+body.night-mode footer {
+    background: #000 !important;
+    color: #888 !important;
+}
+body.night-mode footer a { color: #ccc !important; }
+body.night-mode .footer-title { color: #fff !important; }
+body.night-mode .mobile-menu {
+    background: #000 !important;
+}
+body.night-mode .mobile-menu .nav-link {
+    color: #fff !important;
+    border-bottom-color: #222 !important;
+}
     --shadow-hover: 0 8px 30px rgba(196,30,47,0.2);
     --radius: 12px;
     --transition: all 0.3s ease;
@@ -23,6 +94,17 @@
     padding: 0;
     box-sizing: border-box;
 }
+
+.pricing-row {
+    display: flex;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #ccc;
+    border-bottom: 1px solid #1a1a1a;
+    align-items: center;
+    transition: background 0.15s;
+}
+.pricing-row:hover { background: #1a1a1a; }
 
 body {
     font-family: 'Heebo', sans-serif;

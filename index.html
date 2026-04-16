@@ -13,7 +13,7 @@
         window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
       }
     </script>
-    <link rel="stylesheet" href="css/style.css?v=8">
+    <link rel="stylesheet" href="css/style.css?v=10">
     <link rel="stylesheet" href="css/courier.css">
     <style>
         .topbar-widgets { display:flex; align-items:center; gap:10px; margin-right:12px; }
@@ -159,8 +159,11 @@
                     <h3>הזמנת מונית</h3>
                     <p>נסיעות מונית באופקים והסביבה - שירות מהיר, אמין ובמחיר הוגן</p>
                     <p style="font-size:22px;font-weight:900;color:#D4A843;margin:12px 0 4px;">החל מ-₪15</p>
-                    <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">פתיחת מונה + ₪3 לק"מ</p>
-                    <a href="#" class="btn btn-small" onclick="openTaxiModal();return false;">הזמן מונית</a>
+                    <p style="font-size:13px;color:var(--gray);margin-bottom:12px;">מחיר קבוע מראש לפי מרחק</p>
+                    <div style="display:flex;gap:8px;justify-content:center;">
+                        <a href="#" class="btn btn-small" onclick="openTaxiModal();return false;">הזמן מונית</a>
+                        <a href="#" class="btn btn-small" style="background:transparent;color:#D4A843;border:1.5px solid #D4A843;" onclick="openPricingModal();return false;"><i class="fas fa-list-ol"></i> מחירון</a>
+                    </div>
                 </div>
                 <div class="service-card" data-service="food">
                     <div class="service-icon">
@@ -546,7 +549,10 @@
                             <span>הזמן</span>
                         </button>
 
-                        <a href="#" onclick="openRideHistory();return false;" class="uber-history-link">הנסיעות הקודמות שלי</a>
+                        <div style="display:flex;gap:8px;margin-top:8px;">
+                            <a href="#" onclick="openRideHistory();return false;" class="uber-history-link" style="flex:1;">הנסיעות שלי</a>
+                            <a href="#" onclick="openPricingModal();return false;" class="uber-history-link" style="flex:1;color:#D4A843;">מחירון <i class="fas fa-list-ol"></i></a>
+                        </div>
                     </form>
                     <div id="taxiNearbyDrivers" style="display:none;"></div>
                 </div>
@@ -642,6 +648,74 @@
         </div>
     </div>
 
+    <!-- Pricing Modal -->
+    <div class="modal" id="pricingModal">
+        <div class="modal-content" style="max-width:420px;width:95%;background:#000;color:#fff;border-radius:20px;padding:0;overflow:hidden;text-align:right;direction:rtl;">
+            <div style="background:linear-gradient(135deg,#C41E2F,#8a0a18);padding:20px 20px 16px;position:relative;">
+                <button onclick="closePricingModal()" style="position:absolute;top:14px;left:14px;background:#fff;border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+                <div style="font-size:20px;font-weight:800;"><i class="fas fa-taxi"></i> מחירון נסיעות</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">Tiki Taka — מחיר קבוע מראש</div>
+            </div>
+            <div style="padding:16px 20px 20px;">
+                <div style="background:#111;border:1px solid #222;border-radius:12px;overflow:hidden;margin-bottom:14px;">
+                    <div style="display:flex;background:#1a1a1a;padding:10px 14px;font-size:11px;font-weight:700;color:#888;border-bottom:1px solid #222;">
+                        <div style="flex:2;">מרחק</div>
+                        <div style="flex:1;text-align:center;">תעריף</div>
+                        <div style="flex:1;text-align:center;">דוגמה</div>
+                    </div>
+                    <div class="pricing-row">
+                        <div style="flex:2;"><i class="fas fa-walking" style="color:#059669;width:20px;"></i> עד 2 ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#fff;font-weight:700;">₪15</div>
+                        <div style="flex:1;text-align:center;color:#888;font-size:11px;">מינימום</div>
+                    </div>
+                    <div class="pricing-row">
+                        <div style="flex:2;"><i class="fas fa-car" style="color:#2563EB;width:20px;"></i> 2-5 ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#fff;font-weight:700;">₪4/ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#888;font-size:11px;">₪19-₪27</div>
+                    </div>
+                    <div class="pricing-row">
+                        <div style="flex:2;"><i class="fas fa-road" style="color:#D4A843;width:20px;"></i> 5-10 ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#fff;font-weight:700;">₪3.5/ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#888;font-size:11px;">₪27-₪45</div>
+                    </div>
+                    <div class="pricing-row" style="border-bottom:none;">
+                        <div style="flex:2;"><i class="fas fa-highway" style="color:#C41E2F;width:20px;"></i> 10+ ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#fff;font-weight:700;">₪3/ק"מ</div>
+                        <div style="flex:1;text-align:center;color:#888;font-size:11px;">בין-עירוני</div>
+                    </div>
+                </div>
+
+                <div style="background:#111;border:1px solid #222;border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+                    <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;"><i class="fas fa-plus-circle" style="color:#C41E2F;"></i> תוספות</div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+                        <span style="color:#aaa;"><i class="fas fa-moon" style="width:18px;color:#7C3AED;"></i> לילה (21:00-06:00)</span>
+                        <span style="color:#fff;font-weight:700;">+25%</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;">
+                        <span style="color:#aaa;"><i class="fas fa-star-of-david" style="width:18px;color:#D4A843;"></i> שבת וחגים</span>
+                        <span style="color:#fff;font-weight:700;">+25%</span>
+                    </div>
+                </div>
+
+                <div style="background:#0a1a0a;border:1px solid #059669;border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+                    <div style="font-size:13px;font-weight:700;color:#059669;margin-bottom:6px;"><i class="fas fa-calculator"></i> חישוב מהיר</div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="number" id="pricingCalcKm" min="0.5" max="50" step="0.5" value="3" style="flex:1;background:#111;border:1px solid #222;color:#fff;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit;text-align:center;outline:none;" oninput="calcPricing()">
+                        <span style="color:#888;font-size:13px;">ק"מ</span>
+                        <span style="color:#888;">=</span>
+                        <span id="pricingCalcResult" style="color:#C41E2F;font-size:22px;font-weight:900;min-width:60px;text-align:center;">₪19</span>
+                    </div>
+                </div>
+
+                <div style="text-align:center;font-size:11px;color:#555;">
+                    <i class="fas fa-info-circle"></i> המחיר נקבע מראש לפני הנסיעה ולא משתנה
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Order Success Modal -->
     <div class="modal" id="orderModal">
         <div class="modal-content">
@@ -654,6 +728,6 @@
         </div>
     </div>
 
-    <script src="js/app.js?v=7"></script>
+    <script src="js/app.js?v=10"></script>
 </body>
 </html>

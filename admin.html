@@ -145,6 +145,9 @@
                 <a href="#" class="sidebar-link" onclick="showTab('customerView')">
                     <i class="fas fa-eye"></i> תצוגת לקוח
                 </a>
+                <a href="#" class="sidebar-link" onclick="showTab('settlement')">
+                    <i class="fas fa-handshake"></i> התחשבנות נהגים
+                </a>
                 <a href="#" class="sidebar-link" onclick="showTab('settings')">
                     <i class="fas fa-cog"></i> הגדרות
                 </a>
@@ -397,6 +400,81 @@
                             <tbody id="customersTable">
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settlement Tab -->
+            <div id="tab-settlement" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-handshake"></i> התחשבנות נהגים</h2>
+
+                    <!-- Summary Cards -->
+                    <div class="stats-grid" id="settlementStats"></div>
+
+                    <!-- Controls -->
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:20px 0;">
+                        <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                            <label>נהג</label>
+                            <select id="settlementDriver" onchange="loadSettlement()">
+                                <option value="all">כל הנהגים</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:140px;">
+                            <label>מתאריך</label>
+                            <input type="date" id="settlementFrom" onchange="loadSettlement()">
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:140px;">
+                            <label>עד תאריך</label>
+                            <input type="date" id="settlementTo" onchange="loadSettlement()">
+                        </div>
+                        <div class="form-group" style="margin:0;min-width:100px;">
+                            <label>תקופה</label>
+                            <select id="settlementPeriod" onchange="setSettlementPeriod()">
+                                <option value="week">שבוע אחרון</option>
+                                <option value="month">חודש אחרון</option>
+                                <option value="custom">מותאם</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;gap:8px;align-items:flex-end;">
+                            <button class="btn btn-primary" onclick="loadSettlement()"><i class="fas fa-sync"></i> רענן</button>
+                            <button class="btn btn-primary" style="background:#059669;" onclick="exportSettlementCSV()"><i class="fas fa-file-csv"></i> ייצוא</button>
+                            <button class="btn btn-primary" style="background:#7C3AED;" onclick="markSettlementPaid()"><i class="fas fa-check-double"></i> סמן כשולם</button>
+                        </div>
+                    </div>
+
+                    <!-- Per-Driver Cards -->
+                    <div id="settlementDriverCards"></div>
+
+                    <!-- Rides Table -->
+                    <div class="admin-section" style="margin-top:20px;">
+                        <h3><i class="fas fa-list"></i> פירוט נסיעות</h3>
+                        <div style="overflow-x:auto;">
+                            <table class="admin-table" id="settlementTable">
+                                <thead>
+                                    <tr>
+                                        <th>מס׳</th>
+                                        <th>תאריך</th>
+                                        <th>נהג</th>
+                                        <th>מוצא</th>
+                                        <th>יעד</th>
+                                        <th>ק"מ</th>
+                                        <th>מחיר</th>
+                                        <th>עמלה (20%)</th>
+                                        <th>לנהג</th>
+                                        <th>תשלום</th>
+                                        <th>סטטוס</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="settlementTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Payment History -->
+                    <div class="admin-section" style="margin-top:20px;">
+                        <h3><i class="fas fa-history"></i> היסטוריית תשלומים</h3>
+                        <div id="settlementPaymentHistory"></div>
                     </div>
                 </div>
             </div>

@@ -857,21 +857,17 @@ function estimateTaxiPrice() {
         const hash = (from + '→' + to).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
         km = 2 + (hash % 80) / 10;
     }
-    const tariff = getTaxiTariff();
     const now = new Date();
     const isNight = now.getHours() >= 21 || now.getHours() < 6;
     const isShabbat = (now.getDay() === 5 && now.getHours() >= 15) || now.getDay() === 6;
-    const mult = tariff.vehicleMultiplier[vehicle] || 1;
-    let price = (tariff.baseFare + km * tariff.perKm) * mult;
-    if (isNight) price *= (1 + tariff.nightSurcharge / 100);
-    if (isShabbat) price *= (1 + tariff.shabbatSurcharge / 100);
+    let price = calcFixedPrice(km);
+    const parts = [`${km.toFixed(1)} ק"מ`];
+    if (isNight) { price = Math.round(price * 1.25); parts.push('+25% לילה'); }
+    if (isShabbat) { price = Math.round(price * 1.25); parts.push('+25% שבת'); }
     price = Math.round(price);
 
     document.getElementById('taxiPriceAmount').textContent = '₪' + price;
-    const parts = [`${km.toFixed(1)} ק"מ`, `פתיחה ₪${tariff.baseFare}`, `${tariff.perKm}₪/ק"מ`];
-    if (mult !== 1) parts.push(`×${mult} רכב`);
-    if (isNight) parts.push(`+${tariff.nightSurcharge}% לילה`);
-    if (isShabbat) parts.push(`+${tariff.shabbatSurcharge}% שבת`);
+    parts.unshift('מחיר קבוע');
     document.getElementById('taxiPriceBreakdown').textContent = parts.join(' · ');
 
     // ETA
@@ -939,107 +935,290 @@ function submitTaxiRequest(e) {
 function showRideTracking(rideId) {
     const ride = DB.get('rides').find(r => r.id === rideId);
     if (!ride) return;
-    document.getElementById('taxiStepRequest').style.display = 'none';
-    document.getElementById('taxiStepHistory').style.display = 'none';
-    document.getElementById('taxiStepRating').style.display = 'none';
+    hideAllTaxiSteps();
     const wrap = document.getElementById('taxiStepTracking');
     wrap.style.display = 'block';
-    renderRideTracking(ride);
+    if (!ride._progress && ride.status === 'in_ride') ride._progress = 0;
+    buildTrackingUI(ride);
     if (taxiTrackingInterval) clearInterval(taxiTrackingInterval);
     taxiTrackingInterval = setInterval(() => {
         const r = DB.get('rides').find(x => x.id === rideId);
         if (!r) { clearInterval(taxiTrackingInterval); return; }
-        renderRideTracking(r);
+        advanceRide(r);
+        updateTrackingUI(r);
         if (r.status === 'completed') {
             clearInterval(taxiTrackingInterval);
-            setTimeout(() => openRatingForRide(rideId), 800);
+            setTimeout(() => openRatingForRide(rideId), 1200);
         }
-    }, 3000);
+    }, 2000);
 }
 
-function renderRideTracking(ride) {
+let _trackDriverMarker = null;
+let _trackRouteLine = null;
+let _trackProgressLine = null;
+
+function advanceRide(ride) {
+    if (!ride.pickupLat || !ride.dropoffLat) return;
+    const driver = ride.driverId ? DB.get('drivers').find(d => d.id === ride.driverId) : null;
+    if (!driver) return;
+    const drivers = DB.get('drivers');
+    const idx = drivers.findIndex(x => x.id === driver.id);
+
+    if (ride.status === 'on_way_to_pickup') {
+        driver.lat += (ride.pickupLat - driver.lat) * 0.18;
+        driver.lng += (ride.pickupLng - driver.lng) * 0.18;
+        if (idx !== -1) { drivers[idx] = driver; DB.set('drivers', drivers); }
+    } else if (ride.status === 'in_ride') {
+        if (ride._progress === undefined) ride._progress = 0;
+        ride._progress = Math.min(1, ride._progress + 0.06 + Math.random() * 0.04);
+        const lat = ride.pickupLat + (ride.dropoffLat - ride.pickupLat) * ride._progress;
+        const lng = ride.pickupLng + (ride.dropoffLng - ride.pickupLng) * ride._progress;
+        driver.lat = lat;
+        driver.lng = lng;
+        if (idx !== -1) { drivers[idx] = driver; DB.set('drivers', drivers); }
+        const rides = DB.get('rides');
+        const ri = rides.find(x => x.id === ride.id);
+        if (ri) { ri._progress = ride._progress; DB.set('rides', rides); }
+    }
+}
+
+function buildTrackingUI(ride) {
     const wrap = document.getElementById('taxiStepTracking');
     const driver = ride.driverId ? DB.get('drivers').find(d => d.id === ride.driverId) : null;
+
+    wrap.innerHTML = `
+        <div class="uber-step" style="background:#000;">
+            <div id="trackingMapFull" style="position:absolute;inset:0;z-index:1;"></div>
+            <div class="uber-topbar" style="z-index:10;">
+                <button type="button" class="uber-iconbtn" onclick="closeTaxiModal()" aria-label="סגור">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+                <div class="uber-topbar-title" id="trackTopTitle">המונית שלך</div>
+                <div style="width:42px;"></div>
+            </div>
+            <div class="uber-sheet" style="max-height:50vh;">
+                <div class="uber-sheet-handle"></div>
+                <div id="trackStatusBanner"></div>
+                <div id="trackDriverCard" style="margin:8px 0;"></div>
+                <div id="trackEtaBar" style="margin:8px 0;"></div>
+                <div id="trackRouteInfo" style="margin:8px 0;"></div>
+                <div id="trackTimeline" style="margin:10px 0;"></div>
+                <div id="trackActions" style="display:flex;gap:8px;margin-top:10px;"></div>
+            </div>
+        </div>`;
+    setTimeout(() => {
+        initTrackingMapFull(ride, driver);
+        updateTrackingUI(ride);
+    }, 150);
+}
+
+function updateTrackingUI(ride) {
+    const driver = ride.driverId ? DB.get('drivers').find(d => d.id === ride.driverId) : null;
+    const isCancelled = ride.status === 'cancelled';
     const statuses = [
         { key: 'requested', label: 'בקשה', icon: 'fa-paper-plane' },
         { key: 'accepted', label: 'אושר', icon: 'fa-check-circle' },
-        { key: 'on_way_to_pickup', label: 'בדרך', icon: 'fa-road' },
+        { key: 'on_way_to_pickup', label: 'בדרך אליך', icon: 'fa-road' },
         { key: 'in_ride', label: 'בנסיעה', icon: 'fa-car-side' },
-        { key: 'completed', label: 'הושלם', icon: 'fa-flag-checkered' }
+        { key: 'completed', label: 'הגעת!', icon: 'fa-flag-checkered' }
     ];
     const currentIdx = statuses.findIndex(s => s.key === ride.status);
-    const isCancelled = ride.status === 'cancelled';
 
-    const driverCard = driver ? `
-        <div style="background:#fef3c7;border:1px solid #D4A843;border-radius:12px;padding:12px;margin:12px 0;display:flex;align-items:center;gap:12px;">
-            ${driver.photo ? `<img src="${driver.photo}" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #D4A843;">` : '<div style="width:60px;height:60px;border-radius:50%;background:#D4A843;color:white;display:flex;align-items:center;justify-content:center;font-size:28px;"><i class="fas fa-id-card"></i></div>'}
-            <div style="flex:1;">
-                <strong>${driver.name}</strong><br>
-                <span style="font-size:12px;color:#666;"><i class="fas fa-id-badge"></i> ${driver.plate || '-'} · <i class="fas fa-star" style="color:#FFB800;"></i> ${(parseFloat(driver.rating) || 0).toFixed(1)}</span>
-            </div>
-            ${driver.phone ? `<a href="tel:${driver.phone.replace(/[^\d+]/g,'')}" style="background:#059669;color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;"><i class="fas fa-phone"></i></a>` : ''}
-        </div>` : `<div style="background:#f3f4f6;border-radius:12px;padding:16px;margin:12px 0;text-align:center;color:#666;"><i class="fas fa-spinner fa-spin"></i> מחפש נהג פנוי...</div>`;
+    const banner = document.getElementById('trackStatusBanner');
+    if (banner) {
+        const msgs = {
+            requested: '<i class="fas fa-spinner fa-spin"></i> מחפש נהג פנוי...',
+            accepted: '<i class="fas fa-check-circle"></i> נהג אישר! מתכונן לדרך',
+            on_way_to_pickup: '<i class="fas fa-car-side"></i> הנהג בדרך אליך',
+            in_ride: '<i class="fas fa-route"></i> בנסיעה ליעד',
+            completed: '<i class="fas fa-flag-checkered"></i> הגעת ליעד!',
+            cancelled: '<i class="fas fa-times-circle"></i> הנסיעה בוטלה'
+        };
+        const colors = { requested: '#D4A843', accepted: '#059669', on_way_to_pickup: '#2563EB', in_ride: '#C41E2F', completed: '#059669', cancelled: '#dc3545' };
+        const bg = colors[ride.status] || '#D4A843';
+        banner.innerHTML = `<div style="background:${bg};color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;text-align:center;">${msgs[ride.status] || ''}</div>`;
+    }
 
-    const timeline = isCancelled
-        ? '<div style="background:#fee2e2;border:1px solid #dc3545;border-radius:12px;padding:16px;text-align:center;color:#dc3545;font-weight:700;"><i class="fas fa-times-circle"></i> הנסיעה בוטלה</div>'
-        : `<div style="display:flex;justify-content:space-between;position:relative;margin:20px 0;">
-                <div style="position:absolute;top:16px;left:5%;right:5%;height:3px;background:#e0e0e0;z-index:0;"></div>
-                ${statuses.map((s, i) => `<div style="text-align:center;position:relative;z-index:2;flex:1;"><div style="width:36px;height:36px;border-radius:50%;background:${i <= currentIdx ? '#D4A843' : '#e0e0e0'};color:white;display:inline-flex;align-items:center;justify-content:center;"><i class="fas ${s.icon}"></i></div><div style="font-size:10px;margin-top:4px;color:${i <= currentIdx ? '#333' : '#999'};">${s.label}</div></div>`).join('')}
+    const dcard = document.getElementById('trackDriverCard');
+    if (dcard) {
+        if (driver) {
+            dcard.innerHTML = `
+                <div style="background:#111;border:1px solid #222;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:12px;">
+                    ${driver.photo ? `<img src="${driver.photo}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #C41E2F;">` : '<div style="width:48px;height:48px;border-radius:50%;background:#C41E2F;color:white;display:flex;align-items:center;justify-content:center;font-size:20px;"><i class="fas fa-user"></i></div>'}
+                    <div style="flex:1;color:#fff;">
+                        <strong>${driver.name}</strong><br>
+                        <span style="font-size:11px;color:#888;">${driver.plate || ''} · <i class="fas fa-star" style="color:#FFB800;"></i> ${(parseFloat(driver.rating) || 0).toFixed(1)}</span>
+                    </div>
+                    ${driver.phone ? `<a href="tel:${driver.phone.replace(/[^\d+]/g,'')}" style="background:#059669;color:white;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;"><i class="fas fa-phone"></i></a>` : ''}
+                </div>`;
+        } else {
+            dcard.innerHTML = `<div style="background:#111;border-radius:10px;padding:14px;text-align:center;color:#888;"><i class="fas fa-spinner fa-spin"></i> מחפש נהג...</div>`;
+        }
+    }
+
+    const etaBar = document.getElementById('trackEtaBar');
+    if (etaBar && ride.status === 'in_ride') {
+        const progress = ride._progress || 0;
+        const totalKm = ride.estimatedKm || 3;
+        const remainKm = Math.max(0, totalKm * (1 - progress));
+        const etaMin = Math.max(1, Math.round(remainKm * 2));
+        const pct = Math.round(progress * 100);
+        etaBar.innerHTML = `
+            <div style="background:#111;border:1px solid #222;border-radius:10px;padding:10px 14px;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px;">
+                    <span><i class="fas fa-clock"></i> ~${etaMin} דק׳ ליעד</span>
+                    <span>${remainKm.toFixed(1)} ק"מ נותרו</span>
+                </div>
+                <div style="background:#222;border-radius:6px;height:6px;overflow:hidden;">
+                    <div style="background:linear-gradient(90deg,#C41E2F,#F59E0B);width:${pct}%;height:100%;border-radius:6px;transition:width 1.5s ease;"></div>
+                </div>
             </div>`;
+    } else if (etaBar && ride.status === 'on_way_to_pickup' && driver) {
+        const driverDist = (ride.pickupLat && driver.lat) ? haversineKm([ride.pickupLat, ride.pickupLng], [driver.lat, driver.lng]) : 0;
+        const etaMin = Math.max(1, Math.round(driverDist * 2 + 1));
+        etaBar.innerHTML = `
+            <div style="background:#111;border:1px solid #222;border-radius:10px;padding:10px 14px;font-size:13px;color:#fff;text-align:center;">
+                <i class="fas fa-car-side" style="color:#2563EB;"></i> הנהג ממך ${driverDist.toFixed(1)} ק"מ · הגעה בעוד ~${etaMin} דק׳
+            </div>`;
+    } else if (etaBar) {
+        etaBar.innerHTML = '';
+    }
 
-    const canCancel = ['requested', 'accepted'].includes(ride.status);
+    const routeInfo = document.getElementById('trackRouteInfo');
+    if (routeInfo) {
+        routeInfo.innerHTML = `
+            <div style="background:#111;border:1px solid #222;border-radius:10px;padding:10px 14px;font-size:12px;color:#aaa;">
+                <div style="margin-bottom:4px;"><span style="color:#059669;"><i class="fas fa-circle" style="font-size:8px;"></i></span> ${ride.fromAddress || 'מוצא'}</div>
+                <div><span style="color:#C41E2F;"><i class="fas fa-square" style="font-size:8px;"></i></span> ${ride.toAddress || 'יעד'}</div>
+                <div style="margin-top:6px;color:#fff;">₪${ride.estimatedPrice || '—'} · ${({cash:'מזומן',card:'אשראי',bit:'ביט',app:'אפליקציה'})[ride.paymentMethod] || '—'}</div>
+            </div>`;
+    }
 
-    wrap.innerHTML = `
-        <h2 style="margin-bottom:8px;"><i class="fas fa-taxi" style="color:#D4A843;"></i> המונית שלך</h2>
-        <div style="color:#666;font-size:13px;margin-bottom:8px;">מספר נסיעה: <strong>${ride.id}</strong></div>
-        ${timeline}
-        ${driverCard}
-        <div style="background:#f8f9fa;border-radius:8px;padding:12px;margin:12px 0;font-size:13px;">
-            <div><i class="fas fa-map-marker-alt" style="color:#059669;"></i> ${ride.fromAddress}</div>
-            <div><i class="fas fa-flag-checkered" style="color:#C41E2F;"></i> ${ride.toAddress}</div>
-            <div><i class="fas fa-users" style="color:#7C3AED;"></i> ${ride.passengers} נוסעים · <i class="fas fa-shekel-sign" style="color:#D4A843;"></i> ₪${ride.estimatedPrice}</div>
-            <div><i class="fas fa-credit-card"></i> ${({cash:'מזומן',card:'אשראי',bit:'ביט',app:'חיוב באפליקציה'})[ride.paymentMethod] || '-'}</div>
-        </div>
-        <div id="taxiTrackingMap" style="width:100%;height:240px;border-radius:12px;border:2px solid #e0e0e0;margin-bottom:12px;"></div>
-        <div style="display:flex;gap:8px;">
-            ${canCancel ? `<button onclick="cancelMyRide('${ride.id}')" class="btn btn-small" style="background:#dc3545;color:white;flex:1;"><i class="fas fa-times"></i> בטל</button>` : ''}
-            <button onclick="closeTaxiModal()" class="btn btn-small" style="background:#6b7280;color:white;flex:1;">סגור</button>
-            <button onclick="backToTaxiRequest()" class="btn btn-small" style="background:#D4A843;color:white;flex:1;"><i class="fas fa-plus"></i> חדש</button>
+    const tl = document.getElementById('trackTimeline');
+    if (tl && !isCancelled) {
+        tl.innerHTML = `<div style="display:flex;justify-content:space-between;position:relative;">
+            <div style="position:absolute;top:14px;left:8%;right:8%;height:3px;background:#222;z-index:0;"></div>
+            ${statuses.map((s, i) => `<div style="text-align:center;position:relative;z-index:2;flex:1;">
+                <div style="width:30px;height:30px;border-radius:50%;background:${i <= currentIdx ? '#C41E2F' : '#222'};color:${i <= currentIdx ? '#fff' : '#555'};display:inline-flex;align-items:center;justify-content:center;font-size:12px;transition:background 0.5s;"><i class="fas ${s.icon}"></i></div>
+                <div style="font-size:9px;margin-top:3px;color:${i <= currentIdx ? '#fff' : '#555'};">${s.label}</div>
+            </div>`).join('')}
         </div>`;
-    setTimeout(() => renderTrackingMap(ride, driver), 100);
+    } else if (tl) {
+        tl.innerHTML = `<div style="background:#3a0a0a;border:1px solid #dc3545;border-radius:10px;padding:12px;text-align:center;color:#dc3545;font-weight:700;"><i class="fas fa-times-circle"></i> הנסיעה בוטלה</div>`;
+    }
+
+    const actions = document.getElementById('trackActions');
+    if (actions) {
+        const canCancel = ['requested', 'accepted'].includes(ride.status);
+        actions.innerHTML = `
+            ${canCancel ? `<button onclick="cancelMyRide('${ride.id}')" style="flex:1;background:#dc3545;color:#fff;border:none;border-radius:10px;padding:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;"><i class="fas fa-times"></i> בטל</button>` : ''}
+            <button onclick="closeTaxiModal()" style="flex:1;background:#222;color:#fff;border:none;border-radius:10px;padding:12px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;">סגור</button>
+            ${ride.status === 'completed' ? `<button onclick="backToTaxiRequest()" style="flex:1;background:#C41E2F;color:#fff;border:none;border-radius:10px;padding:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;"><i class="fas fa-plus"></i> חדש</button>` : ''}`;
+    }
+
+    updateTrackingMapMarker(ride, driver);
 }
 
-function renderTrackingMap(ride, driver) {
-    const el = document.getElementById('taxiTrackingMap');
+function initTrackingMapFull(ride, driver) {
+    const el = document.getElementById('trackingMapFull');
     if (!el || typeof L === 'undefined') return;
     if (trackingMap) { try { trackingMap.remove(); } catch (e) {} trackingMap = null; }
-    trackingMap = L.map('taxiTrackingMap').setView(
-        ride.pickupLat && ride.pickupLng ? [ride.pickupLat, ride.pickupLng] : OFAKIM_CENTER, 14
+    _trackDriverMarker = null;
+    _trackRouteLine = null;
+    _trackProgressLine = null;
+
+    trackingMap = L.map('trackingMapFull', { zoomControl: false }).setView(
+        ride.pickupLat && ride.pickupLng ? [ride.pickupLat, ride.pickupLng] : OFAKIM_CENTER, 15
     );
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', maxZoom: 19 }).addTo(trackingMap);
 
     if (ride.pickupLat && ride.pickupLng) {
-        L.marker([ride.pickupLat, ride.pickupLng], { icon: L.divIcon({ className: '', html: '<div style="background:#059669;color:white;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-map-marker-alt" style="transform:rotate(45deg);"></i></div>', iconSize: [32, 32], iconAnchor: [16, 32] }) }).addTo(trackingMap);
+        L.marker([ride.pickupLat, ride.pickupLng], {
+            icon: L.divIcon({ className: '', html: '<div style="background:#059669;color:white;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);"><i class="fas fa-map-marker-alt" style="transform:rotate(45deg);"></i></div>', iconSize: [32, 32], iconAnchor: [16, 32] })
+        }).addTo(trackingMap);
     }
     if (ride.dropoffLat && ride.dropoffLng) {
-        L.marker([ride.dropoffLat, ride.dropoffLng], { icon: L.divIcon({ className: '', html: '<div style="background:#C41E2F;color:white;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-flag-checkered" style="transform:rotate(45deg);"></i></div>', iconSize: [32, 32], iconAnchor: [16, 32] }) }).addTo(trackingMap);
+        L.marker([ride.dropoffLat, ride.dropoffLng], {
+            icon: L.divIcon({ className: '', html: '<div style="background:#C41E2F;color:white;width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);"><i class="fas fa-flag-checkered" style="transform:rotate(45deg);"></i></div>', iconSize: [32, 32], iconAnchor: [16, 32] })
+        }).addTo(trackingMap);
     }
-    if (driver && driver.lat && driver.lng) {
-        if (ride.pickupLat && ride.pickupLng && ride.status === 'on_way_to_pickup') {
-            driver.lat += (ride.pickupLat - driver.lat) * 0.15;
-            driver.lng += (ride.pickupLng - driver.lng) * 0.15;
-            const drivers = DB.get('drivers');
-            const idx = drivers.findIndex(x => x.id === driver.id);
-            if (idx !== -1) { drivers[idx] = driver; DB.set('drivers', drivers); }
-        }
-        L.marker([driver.lat, driver.lng], { icon: L.divIcon({ className: '', html: '<div style="background:#D4A843;color:white;width:36px;height:36px;border-radius:50%;border:3px solid #fde047;display:flex;align-items:center;justify-content:center;"><i class="fas fa-taxi"></i></div>', iconSize: [36, 36], iconAnchor: [18, 18] }) }).addTo(trackingMap).bindPopup('<strong>' + driver.name + '</strong>');
+    if (ride.pickupLat && ride.dropoffLat) {
+        _trackRouteLine = L.polyline(
+            [[ride.pickupLat, ride.pickupLng], [ride.dropoffLat, ride.dropoffLng]],
+            { color: '#444', weight: 4, dashArray: '8,8', opacity: 0.6 }
+        ).addTo(trackingMap);
+        _trackProgressLine = L.polyline([], { color: '#C41E2F', weight: 5, opacity: 0.9 }).addTo(trackingMap);
     }
+
+    const driverLat = driver ? driver.lat : (ride.pickupLat || OFAKIM_CENTER[0]);
+    const driverLng = driver ? driver.lng : (ride.pickupLng || OFAKIM_CENTER[1]);
+    _trackDriverMarker = L.marker([driverLat, driverLng], {
+        icon: L.divIcon({ className: '', html: '<div style="background:#000;color:#FFB800;width:40px;height:40px;border-radius:50%;border:3px solid #C41E2F;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 14px rgba(196,30,47,0.5);"><i class="fas fa-taxi"></i></div>', iconSize: [40, 40], iconAnchor: [20, 20] })
+    }).addTo(trackingMap);
+
     const pts = [];
-    if (ride.pickupLat && ride.pickupLng) pts.push([ride.pickupLat, ride.pickupLng]);
-    if (ride.dropoffLat && ride.dropoffLng) pts.push([ride.dropoffLat, ride.dropoffLng]);
-    if (driver && driver.lat && driver.lng) pts.push([driver.lat, driver.lng]);
-    if (pts.length >= 2) trackingMap.fitBounds(pts, { padding: [30, 30] });
+    if (ride.pickupLat) pts.push([ride.pickupLat, ride.pickupLng]);
+    if (ride.dropoffLat) pts.push([ride.dropoffLat, ride.dropoffLng]);
+    if (driver && driver.lat) pts.push([driver.lat, driver.lng]);
+    if (pts.length >= 2) trackingMap.fitBounds(pts, { padding: [60, 60] });
 }
+
+function updateTrackingMapMarker(ride, driver) {
+    if (!trackingMap || !_trackDriverMarker) return;
+    if (driver && driver.lat && driver.lng) {
+        _trackDriverMarker.setLatLng([driver.lat, driver.lng]);
+    }
+    if (_trackProgressLine && ride.pickupLat && ride.status === 'in_ride') {
+        const progress = ride._progress || 0;
+        const curLat = ride.pickupLat + (ride.dropoffLat - ride.pickupLat) * progress;
+        const curLng = ride.pickupLng + (ride.dropoffLng - ride.pickupLng) * progress;
+        _trackProgressLine.setLatLngs([[ride.pickupLat, ride.pickupLng], [curLat, curLng]]);
+    }
+}
+
+function renderRideTracking(ride) { updateTrackingUI(ride); }
+
+function renderTrackingMap(ride, driver) { /* replaced by initTrackingMapFull */ }
+
+function openPricingModal() {
+    const m = document.getElementById('pricingModal');
+    if (m) m.classList.add('open');
+    calcPricing();
+}
+
+function closePricingModal() {
+    const m = document.getElementById('pricingModal');
+    if (m) m.classList.remove('open');
+}
+
+function calcFixedPrice(km) {
+    if (km <= 2) return 15;
+    if (km <= 5) return 15 + (km - 2) * 4;
+    if (km <= 10) return 15 + 3 * 4 + (km - 5) * 3.5;
+    return 15 + 3 * 4 + 5 * 3.5 + (km - 10) * 3;
+}
+
+function calcPricing() {
+    const input = document.getElementById('pricingCalcKm');
+    const result = document.getElementById('pricingCalcResult');
+    if (!input || !result) return;
+    const km = parseFloat(input.value) || 0;
+    result.textContent = '₪' + Math.round(calcFixedPrice(km));
+}
+
+function isDayMode() {
+    const h = new Date().getHours();
+    return h >= 5 && h < 17;
+}
+
+function applyDayNightMode() {
+    const day = isDayMode();
+    document.body.classList.toggle('day-mode', day);
+    document.body.classList.toggle('night-mode', !day);
+}
+
+applyDayNightMode();
+setInterval(applyDayNightMode, 60000);
 
 function cancelMyRide(rideId) {
     if (!confirm('לבטל את הנסיעה?')) return;
@@ -1114,29 +1293,149 @@ function openRatingForRide(rideId) {
     const ride = DB.get('rides').find(r => r.id === rideId);
     if (!ride) return;
     const driver = ride.driverId ? DB.get('drivers').find(d => d.id === ride.driverId) : null;
-    document.getElementById('taxiStepTracking').style.display = 'none';
-    document.getElementById('taxiStepRequest').style.display = 'none';
-    document.getElementById('taxiStepHistory').style.display = 'none';
+    hideAllTaxiSteps();
     const wrap = document.getElementById('taxiStepRating');
     wrap.style.display = 'block';
+
+    const km = ride.estimatedKm || 3;
+    const price = ride.estimatedPrice || 0;
+    const created = ride.createdAt ? new Date(ride.createdAt) : new Date();
+    const endTime = new Date();
+    const durationMin = Math.round((endTime - created) / 60000) || Math.round(km * 2);
+    const payLabel = ({cash:'מזומן',card:'כרטיס אשראי',bit:'ביט / פייבוקס',app:'חיוב באפליקציה'})[ride.paymentMethod] || 'מזומן';
+
+    const tariff = getTaxiTariff();
+    const baseFare = tariff.baseFare || 12;
+    const perKm = tariff.perKm || 3;
+    const kmCost = Math.round(km * perKm);
+
     wrap.innerHTML = `
-        <h2 style="text-align:center;margin-bottom:8px;"><i class="fas fa-star" style="color:#FFB800;"></i> איך הייתה הנסיעה?</h2>
-        <p style="text-align:center;color:#666;margin-bottom:16px;">דרג את ${driver ? driver.name : 'הנהג'}</p>
-        ${driver && driver.photo ? `<div style="text-align:center;margin-bottom:12px;"><img src="${driver.photo}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #D4A843;"></div>` : ''}
-        <div id="ratingStars" style="text-align:center;font-size:40px;color:#e0e0e0;margin-bottom:16px;">
-            ${[1,2,3,4,5].map(n => `<i class="fas fa-star" data-star="${n}" style="cursor:pointer;margin:0 4px;" onclick="selectRating(${n})"></i>`).join('')}
-        </div>
-        <div class="form-group"><label>ביקורת (אופציונלי)</label><textarea id="ratingText" rows="3" placeholder="ספר על החוויה שלך..."></textarea></div>
-        <button onclick="submitRating('${rideId}')" class="btn btn-primary btn-large" style="width:100%;justify-content:center;background:#D4A843;"><i class="fas fa-paper-plane"></i> שלח דירוג</button>
-        <button onclick="closeTaxiModal()" style="display:block;margin:12px auto 0;background:none;border:none;color:#666;cursor:pointer;">דלג</button>`;
+        <div class="uber-step" style="background:#000;overflow-y:auto;">
+            <div class="uber-card-topbar">
+                <button type="button" class="uber-iconbtn" onclick="closeTaxiModal()" aria-label="סגור">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+                <div class="uber-topbar-title">סיכום נסיעה</div>
+                <div style="width:42px;"></div>
+            </div>
+            <div style="padding:16px 20px calc(24px + env(safe-area-inset-bottom));direction:rtl;">
+
+                <!-- Route Map -->
+                <div id="ratingRouteMap" style="width:100%;height:200px;border-radius:14px;overflow:hidden;margin-bottom:16px;border:1px solid #222;"></div>
+
+                <!-- Route Summary -->
+                <div style="background:#111;border:1px solid #222;border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+                    <div style="display:flex;align-items:flex-start;gap:12px;">
+                        <div style="display:flex;flex-direction:column;align-items:center;padding-top:4px;">
+                            <div style="width:10px;height:10px;border-radius:50%;background:#059669;"></div>
+                            <div style="width:2px;flex:1;min-height:20px;background:repeating-linear-gradient(to bottom,#333 0 4px,transparent 4px 8px);margin:3px 0;"></div>
+                            <div style="width:10px;height:10px;border-radius:2px;background:#C41E2F;"></div>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:12px;">${ride.fromAddress || 'נקודת איסוף'}</div>
+                            <div style="color:#fff;font-size:14px;font-weight:600;">${ride.toAddress || 'יעד'}</div>
+                        </div>
+                    </div>
+                    <div style="border-top:1px solid #222;margin-top:12px;padding-top:10px;display:flex;justify-content:space-around;color:#888;font-size:12px;">
+                        <span><i class="fas fa-road"></i> ${km.toFixed(1)} ק"מ</span>
+                        <span><i class="fas fa-clock"></i> ${durationMin} דק׳</span>
+                        <span><i class="fas fa-calendar"></i> ${created.toLocaleDateString('he-IL')}</span>
+                    </div>
+                </div>
+
+                <!-- Invoice -->
+                <div style="background:#111;border:1px solid #222;border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+                    <div style="color:#fff;font-size:15px;font-weight:700;margin-bottom:12px;"><i class="fas fa-receipt" style="color:#C41E2F;"></i> חשבון</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;">
+                        <div style="display:flex;justify-content:space-between;color:#aaa;"><span>פתיחת מונה</span><span style="color:#fff;">₪${baseFare}</span></div>
+                        <div style="display:flex;justify-content:space-between;color:#aaa;"><span>${km.toFixed(1)} ק"מ × ₪${perKm}</span><span style="color:#fff;">₪${kmCost}</span></div>
+                        ${ride._nightSurcharge ? `<div style="display:flex;justify-content:space-between;color:#aaa;"><span>תוספת לילה</span><span style="color:#fff;">₪${ride._nightSurcharge}</span></div>` : ''}
+                        <div style="border-top:1px solid #222;padding-top:8px;display:flex;justify-content:space-between;">
+                            <span style="color:#fff;font-size:16px;font-weight:800;">סה"כ</span>
+                            <span style="color:#C41E2F;font-size:22px;font-weight:900;">₪${price}</span>
+                        </div>
+                        <div style="color:#666;font-size:11px;display:flex;align-items:center;gap:6px;"><i class="fas fa-credit-card"></i> ${payLabel}</div>
+                    </div>
+                    <div style="margin-top:10px;text-align:center;font-size:11px;color:#555;">מס׳ נסיעה: ${ride.id} · ${created.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'})}</div>
+                </div>
+
+                <!-- Driver + Rating -->
+                <div style="background:#111;border:1px solid #222;border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+                    <div style="text-align:center;margin-bottom:10px;">
+                        ${driver && driver.photo
+                            ? `<img src="${driver.photo}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #C41E2F;margin-bottom:6px;">`
+                            : `<div style="width:72px;height:72px;border-radius:50%;background:#C41E2F;color:white;display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:6px;"><i class="fas fa-user"></i></div>`}
+                        <div style="color:#fff;font-size:16px;font-weight:700;">${driver ? driver.name : 'הנהג'}</div>
+                        ${driver && driver.plate ? `<div style="color:#666;font-size:12px;">${driver.plate}</div>` : ''}
+                    </div>
+
+                    <div style="text-align:center;color:#fff;font-size:15px;font-weight:600;margin-bottom:10px;">איך הייתה הנסיעה?</div>
+                    <div id="ratingStars" style="text-align:center;font-size:36px;color:#333;margin-bottom:12px;display:flex;justify-content:center;gap:6px;">
+                        ${[1,2,3,4,5].map(n => `<i class="fas fa-star" data-star="${n}" style="cursor:pointer;transition:color 0.15s,transform 0.15s;" onclick="selectRating(${n})" onmouseenter="hoverRating(${n})" onmouseleave="hoverRating(0)"></i>`).join('')}
+                    </div>
+                    <div id="ratingLabel" style="text-align:center;color:#555;font-size:13px;margin-bottom:10px;height:20px;"></div>
+                    <textarea id="ratingText" rows="2" placeholder="ספר על החוויה שלך..." style="width:100%;background:#0a0a0a;border:1px solid #222;color:#fff;border-radius:10px;padding:10px 14px;font-size:14px;font-family:inherit;resize:none;direction:rtl;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='#C41E2F'" onblur="this.style.borderColor='#222'"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <button onclick="submitRating('${rideId}')" class="uber-cta" style="margin-bottom:8px;">
+                    <i class="fas fa-star"></i> שלח דירוג
+                </button>
+                <button onclick="closeTaxiModal()" style="width:100%;background:none;border:none;color:#666;font-size:13px;font-family:inherit;padding:8px;cursor:pointer;">דלג</button>
+            </div>
+        </div>`;
+
     selectedRatingStars = 0;
+    setTimeout(() => renderRatingRouteMap(ride), 200);
+}
+
+function renderRatingRouteMap(ride) {
+    const el = document.getElementById('ratingRouteMap');
+    if (!el || typeof L === 'undefined') return;
+    const map = L.map(el, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, doubleClickZoom: false, touchZoom: false }).setView(OFAKIM_CENTER, 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    const pts = [];
+    if (ride.pickupLat && ride.pickupLng) {
+        pts.push([ride.pickupLat, ride.pickupLng]);
+        L.marker([ride.pickupLat, ride.pickupLng], {
+            icon: L.divIcon({ className: '', html: '<div style="background:#059669;color:white;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid white;"><i class="fas fa-map-marker-alt" style="transform:rotate(45deg);font-size:12px;"></i></div>', iconSize: [28, 28], iconAnchor: [14, 28] })
+        }).addTo(map);
+    }
+    if (ride.dropoffLat && ride.dropoffLng) {
+        pts.push([ride.dropoffLat, ride.dropoffLng]);
+        L.marker([ride.dropoffLat, ride.dropoffLng], {
+            icon: L.divIcon({ className: '', html: '<div style="background:#C41E2F;color:white;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid white;"><i class="fas fa-flag-checkered" style="transform:rotate(45deg);font-size:12px;"></i></div>', iconSize: [28, 28], iconAnchor: [14, 28] })
+        }).addTo(map);
+    }
+    if (pts.length === 2) {
+        L.polyline(pts, { color: '#C41E2F', weight: 4, opacity: 0.8 }).addTo(map);
+        map.fitBounds(pts, { padding: [30, 30] });
+    }
+}
+
+const ratingLabels = ['', 'גרוע', 'לא טוב', 'סביר', 'טוב', 'מעולה!'];
+
+function hoverRating(n) {
+    if (selectedRatingStars > 0) return;
+    document.querySelectorAll('#ratingStars [data-star]').forEach(el => {
+        const s = parseInt(el.dataset.star);
+        el.style.color = s <= n ? '#FFB800' : '#333';
+        el.style.transform = s === n ? 'scale(1.2)' : 'scale(1)';
+    });
+    const label = document.getElementById('ratingLabel');
+    if (label) label.textContent = n > 0 ? ratingLabels[n] : '';
 }
 
 function selectRating(n) {
     selectedRatingStars = n;
     document.querySelectorAll('#ratingStars [data-star]').forEach(el => {
-        el.style.color = parseInt(el.dataset.star) <= n ? '#FFB800' : '#e0e0e0';
+        const s = parseInt(el.dataset.star);
+        el.style.color = s <= n ? '#FFB800' : '#333';
+        el.style.transform = s <= n ? 'scale(1.15)' : 'scale(1)';
     });
+    const label = document.getElementById('ratingLabel');
+    if (label) label.textContent = ratingLabels[n] || '';
 }
 
 function submitRating(rideId) {
@@ -1162,9 +1461,23 @@ function submitRating(rideId) {
             DB.set('drivers', drivers);
         }
     }
-    alert('תודה על הדירוג!');
+    showRatingThankYou();
+}
+
+function showRatingThankYou() {
+    const wrap = document.getElementById('taxiStepRating');
+    wrap.innerHTML = `
+        <div class="uber-step" style="background:#000;display:flex;align-items:center;justify-content:center;">
+            <div style="text-align:center;padding:40px 20px;">
+                <div style="font-size:60px;margin-bottom:16px;">
+                    ${[1,2,3,4,5].map(i => `<i class="fas fa-star" style="color:${i <= selectedRatingStars ? '#FFB800' : '#222'};margin:0 2px;"></i>`).join('')}
+                </div>
+                <h2 style="color:#fff;font-size:22px;font-weight:800;margin-bottom:8px;">תודה!</h2>
+                <p style="color:#888;font-size:14px;margin-bottom:24px;">הדירוג שלך עוזר לנו להשתפר</p>
+                <button onclick="closeTaxiModal()" class="uber-cta" style="max-width:280px;margin:0 auto;">סיום</button>
+            </div>
+        </div>`;
     selectedRatingStars = 0;
-    closeTaxiModal();
 }
 
 // Legacy: track by order ID

@@ -134,7 +134,7 @@ function saveSettings() {
     alert('ההגדרות נשמרו!');
 }
 
-const DB_KEYS = ['suppliers', 'orders', 'products', 'couriers', 'fleet', 'expenses', 'initialized', 'institutions', 'reviews', 'coupons', 'drivers', 'rides', 'customerProducts', 'rideRatings', 'rentals'];
+const DB_KEYS = ['suppliers', 'orders', 'products', 'couriers', 'fleet', 'expenses', 'initialized', 'institutions', 'reviews', 'coupons', 'drivers', 'rides', 'customerProducts', 'rideRatings', 'rentals', 'settlements'];
 
 function exportDB(mode = 'all') {
     const data = { exportedAt: new Date().toISOString(), mode, settings: getSettings() };
@@ -828,6 +828,7 @@ function getTabTitle(tab) {
         'drivers': 'נהגים',
         'rentals': 'השכרות'
     };
+    titles['settlement'] = 'התחשבנות נהגים';
     return titles[tab] || '';
 }
 
@@ -1829,6 +1830,9 @@ showTab = function(tab) {
     }
     if (tab === 'settings') {
         loadSettings();
+    }
+    if (tab === 'settlement') {
+        loadSettlement();
     }
     if (tab === 'analytics') {
         loadAnalytics();
@@ -3424,6 +3428,270 @@ function exportAccountingCSV() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `accounting_${document.getElementById('accFrom').value}_${document.getElementById('accTo').value}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ============================================
+// SETTLEMENT (Driver Billing) — 20% Commission
+// ============================================
+const COMMISSION_RATE = 0.20;
+
+function loadSettlement() {
+    populateSettlementDrivers();
+    setSettlementPeriodDefaults();
+    renderSettlement();
+}
+
+function populateSettlementDrivers() {
+    const sel = document.getElementById('settlementDriver');
+    if (!sel) return;
+    const drivers = DB.get('drivers');
+    const current = sel.value;
+    sel.innerHTML = '<option value="all">כל הנהגים</option>';
+    drivers.forEach(d => {
+        sel.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+    });
+    sel.value = current || 'all';
+}
+
+function setSettlementPeriodDefaults() {
+    const period = (document.getElementById('settlementPeriod') || {}).value || 'week';
+    const now = new Date();
+    const from = document.getElementById('settlementFrom');
+    const to = document.getElementById('settlementTo');
+    if (!from || !to) return;
+    to.value = now.toISOString().slice(0, 10);
+    if (period === 'week') {
+        const d = new Date(now); d.setDate(d.getDate() - 7);
+        from.value = d.toISOString().slice(0, 10);
+    } else if (period === 'month') {
+        const d = new Date(now); d.setMonth(d.getMonth() - 1);
+        from.value = d.toISOString().slice(0, 10);
+    }
+}
+
+function setSettlementPeriod() {
+    const period = document.getElementById('settlementPeriod').value;
+    if (period !== 'custom') {
+        setSettlementPeriodDefaults();
+        renderSettlement();
+    }
+}
+
+function getSettlementRides() {
+    const driverFilter = (document.getElementById('settlementDriver') || {}).value || 'all';
+    const fromDate = (document.getElementById('settlementFrom') || {}).value || '';
+    const toDate = (document.getElementById('settlementTo') || {}).value || '';
+    let rides = DB.get('rides').filter(r => r.status === 'completed' && r.driverId);
+    if (driverFilter !== 'all') rides = rides.filter(r => r.driverId === driverFilter);
+    if (fromDate) rides = rides.filter(r => r.createdAt && r.createdAt.slice(0, 10) >= fromDate);
+    if (toDate) rides = rides.filter(r => r.createdAt && r.createdAt.slice(0, 10) <= toDate);
+    return rides;
+}
+
+function renderSettlement() {
+    const rides = getSettlementRides();
+    const drivers = DB.get('drivers');
+    const settlements = DB.get('settlements');
+
+    const totalRevenue = rides.reduce((s, r) => s + (r.estimatedPrice || 0), 0);
+    const totalCommission = Math.round(totalRevenue * COMMISSION_RATE);
+    const totalDriverPay = totalRevenue - totalCommission;
+    const totalPaid = settlements.reduce((s, p) => s + (p.amount || 0), 0);
+
+    const statsEl = document.getElementById('settlementStats');
+    if (statsEl) {
+        statsEl.innerHTML = `
+            <div class="stat-card"><div class="stat-number">${rides.length}</div><div class="stat-label">נסיעות</div></div>
+            <div class="stat-card"><div class="stat-number">₪${totalRevenue.toLocaleString()}</div><div class="stat-label">הכנסות ברוטו</div></div>
+            <div class="stat-card" style="border-right:3px solid #C41E2F;"><div class="stat-number">₪${totalCommission.toLocaleString()}</div><div class="stat-label">עמלת טיקי טאקה (20%)</div></div>
+            <div class="stat-card" style="border-right:3px solid #059669;"><div class="stat-number">₪${totalDriverPay.toLocaleString()}</div><div class="stat-label">לתשלום לנהגים</div></div>`;
+    }
+
+    renderSettlementDriverCards(rides, drivers);
+    renderSettlementTable(rides, drivers);
+    renderPaymentHistory();
+}
+
+function renderSettlementDriverCards(rides, drivers) {
+    const wrap = document.getElementById('settlementDriverCards');
+    if (!wrap) return;
+    const byDriver = {};
+    rides.forEach(r => {
+        if (!byDriver[r.driverId]) byDriver[r.driverId] = { rides: [], total: 0 };
+        byDriver[r.driverId].rides.push(r);
+        byDriver[r.driverId].total += r.estimatedPrice || 0;
+    });
+
+    const settlements = DB.get('settlements');
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">';
+    Object.entries(byDriver).forEach(([driverId, data]) => {
+        const driver = drivers.find(d => d.id === driverId);
+        const name = driver ? driver.name : driverId;
+        const photo = driver && driver.photo ? `<img src="${driver.photo}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">` : '<div style="width:44px;height:44px;border-radius:50%;background:#C41E2F;color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;"><i class="fas fa-user"></i></div>';
+        const commission = Math.round(data.total * COMMISSION_RATE);
+        const driverPay = data.total - commission;
+        const paidTotal = settlements.filter(s => s.driverId === driverId).reduce((s, p) => s + (p.amount || 0), 0);
+        const balance = driverPay - paidTotal;
+        const balanceColor = balance > 0 ? '#C41E2F' : '#059669';
+        const balanceLabel = balance > 0 ? 'חוב' : 'מסולק';
+
+        html += `
+            <div style="background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    ${photo}
+                    <div>
+                        <strong style="font-size:15px;">${escapeHtml(name)}</strong>
+                        <div style="font-size:12px;color:#888;">${data.rides.length} נסיעות</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px;">
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;">
+                        <div style="color:#888;font-size:11px;">סה"כ</div>
+                        <div style="font-weight:700;">₪${data.total}</div>
+                    </div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;">
+                        <div style="color:#888;font-size:11px;">עמלה</div>
+                        <div style="font-weight:700;color:#C41E2F;">₪${commission}</div>
+                    </div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;">
+                        <div style="color:#888;font-size:11px;">לנהג</div>
+                        <div style="font-weight:700;color:#059669;">₪${driverPay}</div>
+                    </div>
+                    <div style="background:#f8f9fa;border-radius:8px;padding:8px;text-align:center;">
+                        <div style="color:#888;font-size:11px;">${balanceLabel}</div>
+                        <div style="font-weight:700;color:${balanceColor};">₪${Math.abs(balance)}</div>
+                    </div>
+                </div>
+                ${balance > 0 ? `<button onclick="payDriver('${driverId}',${driverPay})" class="btn btn-primary" style="width:100%;margin-top:10px;background:#059669;justify-content:center;font-size:13px;padding:8px;"><i class="fas fa-money-bill-wave"></i> סמן תשלום ₪${driverPay}</button>` : ''}
+            </div>`;
+    });
+    html += '</div>';
+    wrap.innerHTML = Object.keys(byDriver).length ? html : '<div style="text-align:center;color:#888;padding:20px;">אין נסיעות בתקופה שנבחרה</div>';
+}
+
+function renderSettlementTable(rides, drivers) {
+    const tbody = document.getElementById('settlementTableBody');
+    if (!tbody) return;
+    const sorted = rides.slice().sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    tbody.innerHTML = sorted.map(r => {
+        const driver = drivers.find(d => d.id === r.driverId);
+        const price = r.estimatedPrice || 0;
+        const commission = Math.round(price * COMMISSION_RATE);
+        const driverPay = price - commission;
+        const date = r.createdAt ? new Date(r.createdAt) : null;
+        const dateStr = date ? date.toLocaleDateString('he-IL') + ' ' + date.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'}) : '-';
+        const payLabel = ({cash:'מזומן',card:'אשראי',bit:'ביט',app:'אפליקציה'})[r.paymentMethod] || '-';
+        return `<tr>
+            <td>${r.id}</td>
+            <td>${dateStr}</td>
+            <td>${driver ? escapeHtml(driver.name) : '-'}</td>
+            <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(r.fromAddress || '-')}</td>
+            <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(r.toAddress || '-')}</td>
+            <td>${(r.estimatedKm || 0).toFixed(1)}</td>
+            <td style="font-weight:700;">₪${price}</td>
+            <td style="color:#C41E2F;font-weight:600;">₪${commission}</td>
+            <td style="color:#059669;font-weight:600;">₪${driverPay}</td>
+            <td>${payLabel}</td>
+            <td><span style="background:#d1fae5;color:#059669;padding:2px 8px;border-radius:10px;font-size:11px;">הושלם</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function payDriver(driverId, amount) {
+    const drivers = DB.get('drivers');
+    const driver = drivers.find(d => d.id === driverId);
+    const name = driver ? driver.name : driverId;
+    if (!confirm(`לסמן תשלום של ₪${amount} ל${name}?`)) return;
+    const payment = {
+        id: 'PAY-' + Date.now().toString().slice(-6),
+        driverId,
+        driverName: name,
+        amount,
+        date: new Date().toISOString(),
+        method: 'העברה בנקאית',
+        note: ''
+    };
+    DB.add('settlements', payment);
+    renderSettlement();
+}
+
+function markSettlementPaid() {
+    const rides = getSettlementRides();
+    const drivers = DB.get('drivers');
+    const settlements = DB.get('settlements');
+    const byDriver = {};
+    rides.forEach(r => {
+        if (!byDriver[r.driverId]) byDriver[r.driverId] = 0;
+        byDriver[r.driverId] += r.estimatedPrice || 0;
+    });
+    let count = 0;
+    Object.entries(byDriver).forEach(([driverId, total]) => {
+        const driverPay = total - Math.round(total * COMMISSION_RATE);
+        const paidTotal = settlements.filter(s => s.driverId === driverId).reduce((s, p) => s + (p.amount || 0), 0);
+        const balance = driverPay - paidTotal;
+        if (balance > 0) {
+            const driver = drivers.find(d => d.id === driverId);
+            DB.add('settlements', {
+                id: 'PAY-' + Date.now().toString().slice(-6) + '-' + (++count),
+                driverId,
+                driverName: driver ? driver.name : driverId,
+                amount: balance,
+                date: new Date().toISOString(),
+                method: 'סילוק תקופתי',
+                note: ''
+            });
+        }
+    });
+    if (count > 0) {
+        alert(`${count} נהגים סומנו כשולמו`);
+        renderSettlement();
+    } else {
+        alert('אין יתרות פתוחות לסילוק');
+    }
+}
+
+function renderPaymentHistory() {
+    const wrap = document.getElementById('settlementPaymentHistory');
+    if (!wrap) return;
+    const payments = DB.get('settlements').slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    if (!payments.length) {
+        wrap.innerHTML = '<div style="text-align:center;color:#888;padding:16px;">אין תשלומים עדיין</div>';
+        return;
+    }
+    wrap.innerHTML = `<table class="admin-table"><thead><tr>
+        <th>מס׳</th><th>תאריך</th><th>נהג</th><th>סכום</th><th>אמצעי</th>
+    </tr></thead><tbody>${payments.map(p => {
+        const date = p.date ? new Date(p.date).toLocaleDateString('he-IL') : '-';
+        return `<tr>
+            <td>${p.id}</td>
+            <td>${date}</td>
+            <td>${escapeHtml(p.driverName || '-')}</td>
+            <td style="font-weight:700;color:#059669;">₪${p.amount}</td>
+            <td>${escapeHtml(p.method || '-')}</td>
+        </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function exportSettlementCSV() {
+    const rides = getSettlementRides();
+    const drivers = DB.get('drivers');
+    let csv = '\uFEFF"מס׳","תאריך","נהג","מוצא","יעד","ק״מ","מחיר","עמלה (20%)","לנהג","תשלום"\n';
+    rides.forEach(r => {
+        const driver = drivers.find(d => d.id === r.driverId);
+        const price = r.estimatedPrice || 0;
+        const commission = Math.round(price * COMMISSION_RATE);
+        const driverPay = price - commission;
+        const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('he-IL') : '';
+        const pay = ({cash:'מזומן',card:'אשראי',bit:'ביט',app:'אפליקציה'})[r.paymentMethod] || '';
+        csv += `"${r.id}","${date}","${driver ? driver.name : ''}","${r.fromAddress || ''}","${r.toAddress || ''}","${(r.estimatedKm||0).toFixed(1)}","${price}","${commission}","${driverPay}","${pay}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `settlement_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
