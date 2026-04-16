@@ -15,7 +15,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
+                <img src="images/logo.svg" alt="TikiTaka" class="logo-img">
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">ראשי</a>
@@ -189,6 +189,14 @@
                 <h3><i class="fas fa-shopping-cart"></i> סל קניות</h3>
                 <div id="cartItems" class="cart-items"></div>
                 <div id="cartSummary" class="cart-summary" style="display:none;">
+                    <div class="form-group" style="margin-top:12px;">
+                        <label><i class="fas fa-ticket-alt"></i> קוד קופון</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="couponInput" placeholder="קוד קופון" style="flex:1;">
+                            <button class="btn btn-small" onclick="applyCoupon()" style="background:#2563EB;color:white;">החל</button>
+                        </div>
+                        <div id="couponMsg" style="margin-top:6px;font-size:13px;"></div>
+                    </div>
                     <div class="cart-total">
                         <span>סה"כ:</span>
                         <span id="cartTotal" class="total-price">₪0</span>

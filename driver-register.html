@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikiTaka - הרשמת נהג מונית</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/suppliers.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        .doc-upload {
+            display:block;
+            padding:16px;
+            border:2px dashed #D4A843;
+            border-radius:12px;
+            text-align:center;
+            cursor:pointer;
+            background:#fef3c7;
+            transition:all 0.2s;
+        }
+        .doc-upload:hover { background:#fde68a; border-color:#92400E; }
+        .doc-upload.uploaded { background:#d1fae5; border-color:#059669; border-style:solid; }
+        .doc-upload i { font-size:32px; color:#D4A843; margin-bottom:8px; }
+        .doc-upload.uploaded i { color:#059669; }
+        .doc-thumbs { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+        .doc-thumb { position:relative; }
+        .doc-thumb img { width:90px; height:90px; object-fit:cover; border-radius:8px; border:2px solid #e0e0e0; }
+        .doc-thumb button { position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%; background:#dc3545; color:white; border:none; cursor:pointer; font-size:12px; }
+        .vehicle-card { cursor:pointer; padding:16px; border:2px solid #e0e0e0; border-radius:12px; text-align:center; transition:all 0.2s; }
+        .vehicle-card.selected { border-color:#D4A843; background:#fef3c7; }
+        .vehicle-card i { font-size:32px; color:#D4A843; margin-bottom:8px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="images/logo.svg" alt="TikiTaka" class="logo-img">
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">ראשי</a>
+                <a href="suppliers.html" class="nav-link">כניסת ספקים</a>
+                <a href="courier.html" class="nav-link">כניסת שליחים</a>
+                <a href="driver-register.html" class="nav-link active">הרשמת נהג</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="supplier-portal" style="max-width:700px;margin:0 auto;padding:24px;">
+        <div class="register-card">
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="display:inline-flex;width:80px;height:80px;background:linear-gradient(135deg,#D4A843,#F59E0B);border-radius:50%;align-items:center;justify-content:center;color:white;font-size:40px;margin-bottom:12px;">
+                    <i class="fas fa-taxi"></i>
+                </div>
+                <h2>הרשמה כנהג מונית</h2>
+                <p style="color:#666;">הצטרף לצוות TikiTaka. מלא את הפרטים והעלה מסמכים מהמצלמה או מהגלריה.</p>
+            </div>
+
+            <form onsubmit="submitDriverRegistration(event)">
+                <h3 style="font-size:16px;margin-bottom:12px;"><i class="fas fa-user"></i> פרטים אישיים</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>שם מלא</label>
+                        <input type="text" id="drName" required placeholder="שם פרטי ומשפחה">
+                    </div>
+                    <div class="form-group">
+                        <label>תעודת זהות</label>
+                        <input type="text" id="drId" required placeholder="9 ספרות" pattern="[0-9]{9}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>טלפון</label>
+                        <input type="tel" id="drPhone" required placeholder="050-0000000">
+                    </div>
+                    <div class="form-group">
+                        <label>אימייל</label>
+                        <input type="email" id="drEmail" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>כתובת מגורים</label>
+                    <input type="text" id="drAddress" required placeholder="רחוב, עיר">
+                </div>
+
+                <h3 style="font-size:16px;margin:20px 0 12px;"><i class="fas fa-id-card"></i> פרטי נהיגה</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מספר רישיון נהיגה</label>
+                        <input type="text" id="drLicense" required placeholder="מס' רישיון">
+                    </div>
+                    <div class="form-group">
+                        <label>בתוקף עד</label>
+                        <input type="date" id="drLicenseExpiry" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>דרגת רישיון</label>
+                        <select id="drLicenseClass">
+                            <option value="B">B - רכב פרטי</option>
+                            <option value="D">D - הסעות (מונית)</option>
+                            <option value="D1">D1 - עד 16 נוסעים</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>שנות ניסיון</label>
+                        <input type="number" id="drExperience" min="0" max="60" placeholder="שנים">
+                    </div>
+                </div>
+
+                <h3 style="font-size:16px;margin:20px 0 12px;"><i class="fas fa-car"></i> פרטי הרכב</h3>
+                <div class="form-group">
+                    <label>סוג רכב</label>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+                        <div class="vehicle-card selected" data-type="standard" onclick="selectVehicleType(this)">
+                            <i class="fas fa-car"></i>
+                            <div><strong>רגיל</strong></div>
+                            <div style="font-size:12px;color:#666;">עד 4 נוסעים</div>
+                        </div>
+                        <div class="vehicle-card" data-type="large" onclick="selectVehicleType(this)">
+                            <i class="fas fa-van-shuttle"></i>
+                            <div><strong>מרווח</strong></div>
+                            <div style="font-size:12px;color:#666;">עד 7 נוסעים</div>
+                        </div>
+                        <div class="vehicle-card" data-type="accessible" onclick="selectVehicleType(this)">
+                            <i class="fas fa-wheelchair"></i>
+                            <div><strong>נגיש</strong></div>
+                            <div style="font-size:12px;color:#666;">לכיסא גלגלים</div>
+                        </div>
+                        <div class="vehicle-card" data-type="premium" onclick="selectVehicleType(this)">
+                            <i class="fas fa-star"></i>
+                            <div><strong>פרימיום</strong></div>
+                            <div style="font-size:12px;color:#666;">רכב יוקרה</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>יצרן ודגם</label>
+                        <input type="text" id="drVehicleModel" required placeholder="לדוגמה: Skoda Octavia">
+                    </div>
+                    <div class="form-group">
+                        <label>שנת יצור</label>
+                        <input type="number" id="drVehicleYear" min="1990" max="2030" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>מספר רישוי</label>
+                        <input type="text" id="drPlate" required placeholder="12-345-67">
+                    </div>
+                    <div class="form-group">
+                        <label>צבע</label>
+                        <input type="text" id="drColor" placeholder="לבן / שחור / כחול...">
+                    </div>
+                </div>
+
+                <h3 style="font-size:16px;margin:20px 0 12px;"><i class="fas fa-camera"></i> העלאת מסמכים (מצלמת טלפון)</h3>
+                <p style="font-size:13px;color:#666;margin-bottom:12px;">לחץ על כל כפתור כדי לצלם עם המצלמה או לבחור מהגלריה</p>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">
+                    <label class="doc-upload" id="label-license">
+                        <i class="fas fa-id-card"></i>
+                        <div><strong>רישיון נהיגה</strong></div>
+                        <div style="font-size:12px;color:#666;">צד קדמי + צד אחורי</div>
+                        <input type="file" accept="image/*" capture="environment" multiple onchange="handleDocUpload('license', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-license"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-id">
+                        <i class="fas fa-address-card"></i>
+                        <div><strong>תעודת זהות</strong></div>
+                        <div style="font-size:12px;color:#666;">צד קדמי + ספח</div>
+                        <input type="file" accept="image/*" capture="environment" multiple onchange="handleDocUpload('id', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-id"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-registration">
+                        <i class="fas fa-file-contract"></i>
+                        <div><strong>רישיון רכב</strong></div>
+                        <div style="font-size:12px;color:#666;">תעודת רישום תקף</div>
+                        <input type="file" accept="image/*" capture="environment" onchange="handleDocUpload('registration', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-registration"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-insurance">
+                        <i class="fas fa-shield-halved"></i>
+                        <div><strong>ביטוח חובה</strong></div>
+                        <div style="font-size:12px;color:#666;">תעודת ביטוח בתוקף</div>
+                        <input type="file" accept="image/*" capture="environment" onchange="handleDocUpload('insurance', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-insurance"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-taxiPermit">
+                        <i class="fas fa-certificate"></i>
+                        <div><strong>רישיון מונית</strong></div>
+                        <div style="font-size:12px;color:#666;">אישור מרכבת ישראל</div>
+                        <input type="file" accept="image/*" capture="environment" onchange="handleDocUpload('taxiPermit', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-taxiPermit"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-criminal">
+                        <i class="fas fa-file-shield"></i>
+                        <div><strong>תעודת יושר</strong></div>
+                        <div style="font-size:12px;color:#666;">ממשטרת ישראל</div>
+                        <input type="file" accept="image/*,application/pdf" capture="environment" onchange="handleDocUpload('criminal', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-criminal"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-profilePhoto">
+                        <i class="fas fa-user-circle"></i>
+                        <div><strong>תמונת פרופיל</strong></div>
+                        <div style="font-size:12px;color:#666;">סלפי - לתצוגה ללקוח</div>
+                        <input type="file" accept="image/*" capture="user" onchange="handleDocUpload('profilePhoto', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-profilePhoto"></div>
+                    </label>
+
+                    <label class="doc-upload" id="label-vehiclePhoto">
+                        <i class="fas fa-taxi"></i>
+                        <div><strong>תמונות הרכב</strong></div>
+                        <div style="font-size:12px;color:#666;">חזית, גב, צד, פנים</div>
+                        <input type="file" accept="image/*" capture="environment" multiple onchange="handleDocUpload('vehiclePhoto', event)" style="display:none;">
+                        <div class="doc-thumbs" id="thumbs-vehiclePhoto"></div>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top:20px;">
+                    <label>
+                        <input type="checkbox" id="drTerms" required> אני מאשר/ת את <a href="#privacy" style="color:#2563EB;">תנאי השימוש</a> ומדיניות הפרטיות
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large" style="width:100%;justify-content:center;background:#D4A843;margin-top:16px;">
+                    <i class="fas fa-paper-plane"></i> שלח הרשמה לאישור
+                </button>
+                <p style="text-align:center;font-size:12px;color:#666;margin-top:8px;">ההרשמה תיבדק ע"י צוות TikiTaka ותאושר תוך 48 שעות</p>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        const driverDocs = {
+            license: [], id: [], registration: [], insurance: [],
+            taxiPermit: [], criminal: [], profilePhoto: [], vehiclePhoto: []
+        };
+        let selectedVehicleType = 'standard';
+
+        function selectVehicleType(el) {
+            document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedVehicleType = el.dataset.type;
+        }
+
+        function handleDocUpload(type, e) {
+            const files = Array.from(e.target.files || []);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    driverDocs[type].push(ev.target.result);
+                    renderDocThumbs(type);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderDocThumbs(type) {
+            const thumbsEl = document.getElementById('thumbs-' + type);
+            const labelEl = document.getElementById('label-' + type);
+            if (driverDocs[type].length === 0) {
+                labelEl.classList.remove('uploaded');
+                thumbsEl.innerHTML = '';
+                return;
+            }
+            labelEl.classList.add('uploaded');
+            thumbsEl.innerHTML = driverDocs[type].map((src, i) => `
+                <div class="doc-thumb">
+                    <img src="${src}" alt="">
+                    <button type="button" onclick="event.preventDefault();removeDoc('${type}',${i})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeDoc(type, index) {
+            driverDocs[type].splice(index, 1);
+            renderDocThumbs(type);
+        }
+
+        function submitDriverRegistration(e) {
+            e.preventDefault();
+            const required = ['license', 'id', 'registration', 'insurance', 'profilePhoto'];
+            const missing = required.filter(t => driverDocs[t].length === 0);
+            if (missing.length > 0) {
+                alert('חסרים מסמכים חובה: ' + missing.map(m => ({
+                    license: 'רישיון נהיגה', id: 'ת"ז', registration: 'רישיון רכב',
+                    insurance: 'ביטוח חובה', profilePhoto: 'תמונת פרופיל'
+                }[m])).join(', '));
+                return;
+            }
+
+            const driver = {
+                id: 'drv-app-' + Date.now().toString().slice(-6),
+                name: document.getElementById('drName').value.trim(),
+                nationalId: document.getElementById('drId').value.trim(),
+                phone: document.getElementById('drPhone').value.trim(),
+                email: document.getElementById('drEmail').value.trim(),
+                address: document.getElementById('drAddress').value.trim(),
+                license: document.getElementById('drLicense').value.trim(),
+                licenseExpiry: document.getElementById('drLicenseExpiry').value,
+                licenseClass: document.getElementById('drLicenseClass').value,
+                experience: parseInt(document.getElementById('drExperience').value) || 0,
+                vehicleType: selectedVehicleType,
+                vehicleModel: document.getElementById('drVehicleModel').value.trim(),
+                vehicleYear: parseInt(document.getElementById('drVehicleYear').value),
+                plate: document.getElementById('drPlate').value.trim(),
+                color: document.getElementById('drColor').value.trim(),
+                seats: selectedVehicleType === 'large' ? 7 : (selectedVehicleType === 'premium' ? 5 : 4),
+                accessible: selectedVehicleType === 'accessible',
+                status: 'pending_approval',
+                rating: 0,
+                ridesCount: 0,
+                photo: driverDocs.profilePhoto[0] || null,
+                vehicleImages: driverDocs.vehiclePhoto.slice(),
+                documents: {
+                    license: driverDocs.license.slice(),
+                    id: driverDocs.id.slice(),
+                    registration: driverDocs.registration.slice(),
+                    insurance: driverDocs.insurance.slice(),
+                    taxiPermit: driverDocs.taxiPermit.slice(),
+                    criminal: driverDocs.criminal.slice()
+                },
+                submittedAt: new Date().toISOString()
+            };
+            DB.add('drivers', driver);
+            alert('הרשמתך התקבלה!\nמספר בקשה: ' + driver.id + '\nצוות TikiTaka יצור איתך קשר לאחר בדיקת המסמכים.');
+            location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

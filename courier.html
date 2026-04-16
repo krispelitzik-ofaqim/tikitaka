@@ -15,7 +15,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
+                <img src="images/logo.svg" alt="TikiTaka" class="logo-img">
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">ראשי</a>
@@ -52,6 +52,14 @@
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> שם</label>
                         <input type="text" id="courierName" required placeholder="השם שלך">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-motorcycle"></i> יש ברשותי</label>
+                        <select id="courierVehicle" required>
+                            <option value="ebike">אופניים חשמליים</option>
+                            <option value="scooter">וספה</option>
+                            <option value="car">רכב</option>
+                        </select>
                     </div>
                     <button type="submit" class="btn btn-courier btn-large" style="width:100%;justify-content:center;">
                         <i class="fas fa-sign-in-alt"></i> כניסה

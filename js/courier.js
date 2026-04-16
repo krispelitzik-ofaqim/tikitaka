@@ -22,14 +22,15 @@ function courierLogin(e) {
     e.preventDefault();
     const phone = document.getElementById('courierPhone').value.trim();
     const name = document.getElementById('courierName').value.trim();
+    const vehicle = document.getElementById('courierVehicle').value;
 
-    currentCourier = { phone, name, id: 'cur_' + phone };
+    currentCourier = { phone, name, id: 'cur_' + phone, vehicle };
 
     // Save courier location data
     let couriers = DB.get('couriers');
     let existing = couriers.find(c => c.phone === phone);
     if (!existing) {
-        couriers.push({ phone, name, id: currentCourier.id, lat: OFAKIM_CENTER[0], lng: OFAKIM_CENTER[1], active: false });
+        couriers.push({ phone, name, id: currentCourier.id, vehicle, lat: OFAKIM_CENTER[0], lng: OFAKIM_CENTER[1], active: false });
         DB.set('couriers', couriers);
         isOnShift = false;
     } else {

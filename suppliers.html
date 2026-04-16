@@ -16,7 +16,7 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="logo">
-                <img src="images/logo.png" alt="TikiTaka" class="logo-img">
+                <img src="images/logo.svg" alt="TikiTaka" class="logo-img">
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">ראשי</a>
@@ -136,6 +136,9 @@
                 <button class="sup-tab" onclick="showSupTab('location')">
                     <i class="fas fa-map-marker-alt"></i> מיקום על מפה
                 </button>
+                <button class="sup-tab" onclick="showSupTab('accounting')">
+                    <i class="fas fa-file-invoice-dollar"></i> הנהלת חשבונות
+                </button>
                 <button class="sup-tab" onclick="showSupTab('profile')">
                     <i class="fas fa-cog"></i> פרופיל
                 </button>
@@ -156,13 +159,83 @@
                             <input type="text" id="itemName" placeholder="שם הפריט">
                         </div>
                         <div class="form-group">
-                            <label>מחיר (₪)</label>
-                            <input type="number" id="itemPrice" placeholder="0">
+                            <label>קטגוריה</label>
+                            <select id="itemCategory">
+                                <option value="food">אוכל</option>
+                                <option value="sweets">מתוקים ופיצוחים</option>
+                                <option value="drinks">שתייה</option>
+                                <option value="flowers">פרחים</option>
+                                <option value="office">ציוד משרדי</option>
+                                <option value="cleaning">ניקיון</option>
+                                <option value="documents">מסמכים</option>
+                                <option value="international">מסירה חבילות חו"ל</option>
+                                <option value="other">אחר</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>תיאור</label>
-                        <input type="text" id="itemDesc" placeholder="תיאור קצר">
+                        <textarea id="itemDesc" rows="2" placeholder="תיאור קצר"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>מחיר (₪)</label>
+                            <input type="number" id="itemPrice" placeholder="0" min="0" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label>יחידת מידה</label>
+                            <select id="itemUnit">
+                                <option value="unit">יחידה</option>
+                                <option value="kg">ק"ג</option>
+                                <option value="pack">חבילה</option>
+                                <option value="box">קרטון</option>
+                                <option value="bottle">בקבוק</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>כמות במלאי</label>
+                            <input type="number" id="itemStock" placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>מינימום להזמנה</label>
+                            <input type="number" id="itemMinOrder" placeholder="1" min="1" value="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-images"></i> תמונות המוצר (ניתן לבחור כמה)</label>
+                        <label class="btn btn-small" style="background:var(--gray);color:white;cursor:pointer;display:inline-flex;">
+                            <i class="fas fa-upload"></i> בחר תמונות
+                            <input type="file" accept="image/*" id="itemImage" multiple onchange="previewItemImage(event)" style="display:none;">
+                        </label>
+                        <div id="itemImagePreview" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-plus-circle"></i> תוספות</label>
+                        <div id="itemAddonsList"></div>
+                        <button type="button" class="btn btn-small" onclick="addItemAddonRow()" style="background:var(--gray);color:white;margin-top:6px;">
+                            <i class="fas fa-plus"></i> הוסף תוספת
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label>הערות</label>
+                        <textarea id="itemNotes" rows="2" placeholder="הערות פנימיות / הוראות הכנה..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>שעות הגשה</label>
+                        <select id="itemDaypart">
+                            <option value="all">כל היום</option>
+                            <option value="breakfast">בוקר (06:00-11:00)</option>
+                            <option value="lunch">צהריים (11:00-16:00)</option>
+                            <option value="dinner">ערב (16:00-22:00)</option>
+                            <option value="latenight">לילה (22:00-06:00)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="itemForInstitutions" checked> זמין למוסדות
+                        </label>
                     </div>
                     <div class="form-actions">
                         <button class="btn btn-primary btn-small" onclick="addMenuItem()">
@@ -177,12 +250,13 @@
             <!-- Photos Tab -->
             <div id="supTab-photos" class="sup-tab-content">
                 <div class="menu-header">
-                    <h3>אלבום תמונות</h3>
+                    <h3>אלבום תמונות <span style="font-size:13px;font-weight:normal;color:var(--gray);">(עד 6 תמונות)</span></h3>
                     <label class="btn btn-primary btn-small upload-btn">
                         <i class="fas fa-upload"></i> העלה תמונה
                         <input type="file" accept="image/*" onchange="uploadPhoto(event)" style="display:none;">
                     </label>
                 </div>
+                <div id="photoSlider" class="photo-slider"></div>
                 <div id="photoGallery" class="photo-gallery"></div>
             </div>
 
@@ -205,10 +279,144 @@
                 </div>
             </div>
 
+            <!-- Accounting Tab -->
+            <div id="supTab-accounting" class="sup-tab-content">
+                <h3><i class="fas fa-file-invoice-dollar"></i> הנהלת חשבונות</h3>
+
+                <div style="display:flex;gap:12px;margin:16px 0;flex-wrap:wrap;align-items:end;">
+                    <div class="form-group" style="margin:0;">
+                        <label>מתאריך</label>
+                        <input type="date" id="supAccFrom" onchange="loadSupAccounting()">
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label>עד תאריך</label>
+                        <input type="date" id="supAccTo" onchange="loadSupAccounting()">
+                    </div>
+                    <button class="btn btn-small" onclick="setSupAccPeriod('month')" style="background:var(--gray);color:white;">החודש</button>
+                    <button class="btn btn-small" onclick="setSupAccPeriod('year')" style="background:var(--gray);color:white;">השנה</button>
+                    <button class="btn btn-small" onclick="setSupAccPeriod('all')" style="background:var(--gray);color:white;">הכל</button>
+                </div>
+
+                <div class="stats-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#28a745;">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="supAccRevenue">₪0</h3>
+                            <p>הכנסות</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#dc3545;">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="supAccExpenses">₪0</h3>
+                            <p>הוצאות</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#2563EB;">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="supAccProfit">₪0</h3>
+                            <p>רווח נקי</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-icon" style="background:#D4A843;">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="stat-card-info">
+                            <h3 id="supAccOrders">0</h3>
+                            <p>הזמנות</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h4><i class="fas fa-cash-register"></i> הכנסות מהזמנות</h4>
+                <div class="table-wrapper" style="margin-bottom:20px;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>מספר</th><th>תאריך</th><th>לקוח</th><th>פריטים</th><th>סכום</th></tr>
+                        </thead>
+                        <tbody id="supAccRevenueTable"></tbody>
+                    </table>
+                </div>
+
+                <div class="menu-header">
+                    <h4><i class="fas fa-money-bill-wave"></i> הוצאות</h4>
+                    <button class="btn btn-primary btn-small" onclick="showSupAddExpense()">
+                        <i class="fas fa-plus"></i> הוספת הוצאה
+                    </button>
+                </div>
+
+                <div id="supAddExpenseForm" class="add-item-form" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>תאריך</label>
+                            <input type="date" id="supExpDate">
+                        </div>
+                        <div class="form-group">
+                            <label>קטגוריה</label>
+                            <select id="supExpCategory">
+                                <option value="fuel">דלק</option>
+                                <option value="maintenance">תחזוקה</option>
+                                <option value="salary">משכורות</option>
+                                <option value="suppliers">חומרי גלם</option>
+                                <option value="rent">שכירות</option>
+                                <option value="utilities">חשבונות</option>
+                                <option value="marketing">שיווק</option>
+                                <option value="other">אחר</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>תיאור</label>
+                            <input type="text" id="supExpDesc" placeholder="פירוט ההוצאה">
+                        </div>
+                        <div class="form-group">
+                            <label>סכום (₪)</label>
+                            <input type="number" id="supExpAmount" placeholder="0" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>מספר קבלה / חשבונית</label>
+                        <input type="text" id="supExpReceipt" placeholder="אופציונלי">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-small" onclick="addSupExpense()">
+                            <i class="fas fa-check"></i> שמור
+                        </button>
+                        <button class="btn btn-small" onclick="hideSupExpenseForm()" style="background:var(--gray);">ביטול</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="admin-table">
+                        <thead>
+                            <tr><th>תאריך</th><th>קטגוריה</th><th>תיאור</th><th>קבלה</th><th>סכום</th><th>פעולות</th></tr>
+                        </thead>
+                        <tbody id="supAccExpensesTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Profile Tab -->
             <div id="supTab-profile" class="sup-tab-content">
                 <h3>פרופיל העסק</h3>
                 <form onsubmit="updateProfile(event)">
+                    <div class="form-group">
+                        <label><i class="fas fa-image"></i> תמונה מייצגת של העסק</label>
+                        <div id="businessImagePreview" style="margin-bottom:10px;"></div>
+                        <label class="btn btn-small" style="background:var(--gray);color:white;cursor:pointer;display:inline-flex;">
+                            <i class="fas fa-upload"></i> העלה תמונה מייצגת
+                            <input type="file" accept="image/*" onchange="uploadBusinessImage(event)" style="display:none;">
+                        </label>
+                    </div>
                     <div class="form-group">
                         <label>שם העסק</label>
                         <input type="text" id="profName">
@@ -230,6 +438,36 @@
                     <div class="form-group">
                         <label>כתובת</label>
                         <input type="text" id="profAddress">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>שעת פתיחה</label>
+                            <input type="time" id="profOpen">
+                        </div>
+                        <div class="form-group">
+                            <label>שעת סגירה</label>
+                            <input type="time" id="profClose">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>ימי פעילות</label>
+                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                            <label><input type="checkbox" value="0" class="prof-day"> א'</label>
+                            <label><input type="checkbox" value="1" class="prof-day"> ב'</label>
+                            <label><input type="checkbox" value="2" class="prof-day"> ג'</label>
+                            <label><input type="checkbox" value="3" class="prof-day"> ד'</label>
+                            <label><input type="checkbox" value="4" class="prof-day"> ה'</label>
+                            <label><input type="checkbox" value="5" class="prof-day"> ו'</label>
+                            <label><input type="checkbox" value="6" class="prof-day"> ש'</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>רדיוס משלוח (ק"מ)</label>
+                        <input type="number" id="profRadius" min="0" step="0.5" placeholder="5">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-icons"></i> סוג העסק / אייקון</label>
+                        <div id="profIconPicker" style="display:flex;gap:8px;flex-wrap:wrap;max-height:280px;overflow-y:auto;padding:8px;border:1px solid #e0e0e0;border-radius:8px;"></div>
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> שמור שינויים

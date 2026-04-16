@@ -5,6 +5,7 @@
 let currentInst = null;
 let currentRole = 'admin';
 let cart = [];
+let appliedCoupon = null;
 
 const instTypeLabels = {
     'school': 'בית ספר',
@@ -184,7 +185,7 @@ function loadCatalog() {
     let html = '';
 
     filtered.forEach(supplier => {
-        const menu = (supplier.menu || []).filter(item => {
+        const menu = getSupplierProducts(supplier.id).filter(matchesCurrentDaypart).filter(item => {
             if (!searchText) return true;
             return item.name.toLowerCase().includes(searchText) ||
                    (item.description && item.description.toLowerCase().includes(searchText));
@@ -311,9 +312,11 @@ function addCatalogToCart(idx) {
 function addToCart(supplierId, itemIndex) {
     const suppliers = DB.get('suppliers');
     const supplier = suppliers.find(s => s.id === supplierId);
-    if (!supplier || !supplier.menu[itemIndex]) return;
+    if (!supplier) return;
+    const menu = getSupplierProducts(supplierId);
+    if (!menu[itemIndex]) return;
 
-    const item = supplier.menu[itemIndex];
+    const item = menu[itemIndex];
     cart.push({
         supplierId,
         supplierName: supplier.name,
@@ -382,9 +385,40 @@ function renderCart() {
         </div>
     `).join('');
 
-    const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    document.getElementById('cartTotal').textContent = `₪${total}`;
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    let total = subtotal;
+    let discount = 0;
+    if (appliedCoupon) {
+        if (appliedCoupon.type === 'percent') {
+            discount = subtotal * appliedCoupon.value / 100;
+        } else {
+            discount = appliedCoupon.value;
+        }
+        total = Math.max(0, subtotal - discount);
+    }
+    document.getElementById('cartTotal').innerHTML = discount > 0
+        ? `<span style="text-decoration:line-through;color:#999;font-size:14px;">₪${subtotal}</span> ₪${total.toFixed(0)} <span style="color:#28a745;font-size:13px;">(-₪${discount.toFixed(0)})</span>`
+        : `₪${total}`;
     summary.style.display = 'block';
+}
+
+function applyCoupon() {
+    const code = document.getElementById('couponInput').value.trim().toUpperCase();
+    const msg = document.getElementById('couponMsg');
+    if (!code) { msg.textContent = ''; appliedCoupon = null; renderCart(); return; }
+    const coupons = DB.get('coupons');
+    const c = coupons.find(c => c.code === code);
+    if (!c) { msg.innerHTML = '<span style="color:#dc3545;">קופון לא נמצא</span>'; return; }
+    if (c.usesLeft <= 0) { msg.innerHTML = '<span style="color:#dc3545;">קופון מוצה</span>'; return; }
+    if (c.expiresAt && new Date(c.expiresAt) < new Date()) { msg.innerHTML = '<span style="color:#dc3545;">קופון פג תוקף</span>'; return; }
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    if (c.minOrder && subtotal < c.minOrder) {
+        msg.innerHTML = `<span style="color:#dc3545;">מינימום להזמנה: ₪${c.minOrder}</span>`;
+        return;
+    }
+    appliedCoupon = c;
+    msg.innerHTML = `<span style="color:#28a745;">✓ קופון ${c.code} הוחל</span>`;
+    renderCart();
 }
 
 function cartUpdateQty(index, delta) {
@@ -419,10 +453,22 @@ function submitInstOrder() {
             name: c.name,
             qty: c.qty,
             price: c.price,
-            supplier: c.supplierName
+            supplier: c.supplierName,
+            supplierId: c.supplierId
         })),
-        totalPrice: total
+        totalPrice: total,
+        couponCode: appliedCoupon ? appliedCoupon.code : null
     };
+
+    if (appliedCoupon) {
+        const coupons = DB.get('coupons');
+        const ci = coupons.findIndex(c => c.code === appliedCoupon.code);
+        if (ci !== -1) {
+            coupons[ci].usesLeft = Math.max(0, coupons[ci].usesLeft - 1);
+            DB.set('coupons', coupons);
+        }
+        appliedCoupon = null;
+    }
 
     DB.add('orders', order);
 
