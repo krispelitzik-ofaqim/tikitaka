@@ -173,7 +173,7 @@ function saveSettings() {
     alert('ההגדרות נשמרו!');
 }
 
-const DB_KEYS = ['suppliers', 'orders', 'products', 'couriers', 'fleet', 'expenses', 'initialized', 'institutions', 'reviews', 'coupons', 'drivers', 'rides', 'customerProducts', 'rideRatings', 'rentals', 'settlements'];
+const DB_KEYS = ['suppliers', 'orders', 'products', 'couriers', 'fleet', 'expenses', 'initialized', 'institutions', 'reviews', 'coupons', 'drivers', 'rides', 'customerProducts', 'rideRatings', 'rentals', 'settlements', 'teamMembers'];
 
 function exportDB(mode = 'all') {
     const data = { exportedAt: new Date().toISOString(), mode, settings: getSettings() };
@@ -868,6 +868,7 @@ function getTabTitle(tab) {
         'rentals': 'השכרות'
     };
     titles['settlement'] = 'התחשבנות נהגים';
+    titles['team'] = 'ניהול צוות';
     titles['courierSettlement'] = 'התחשבנות שליחים';
     titles['supplierSettlement'] = 'התחשבנות ספקים';
     return titles[tab] || '';
@@ -1880,6 +1881,9 @@ showTab = function(tab) {
     }
     if (tab === 'supplierSettlement') {
         loadSupplierSettlement();
+    }
+    if (tab === 'team') {
+        loadTeam();
     }
     if (tab === 'analytics') {
         loadAnalytics();
@@ -4071,6 +4075,159 @@ function exportGenericCSV(type, getOrdersFn, getRateFn, idField, priceField) {
     a.download = `${type}_settlement_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+}
+
+// ============================================
+// TEAM MANAGEMENT
+// ============================================
+const TEAM_ROLES = {
+    admin: { label: 'מנהל מערכת', icon: 'fa-crown', color: '#C41E2F' },
+    dispatcher: { label: 'מוקדן / דיספטצ\'ר', icon: 'fa-headset', color: '#2563EB' },
+    field_manager: { label: 'מנהל שטח', icon: 'fa-map-marked-alt', color: '#059669' },
+    courier_manager: { label: 'מנהל שליחים', icon: 'fa-motorcycle', color: '#7C3AED' },
+    driver_manager: { label: 'מנהל נהגי מונית', icon: 'fa-taxi', color: '#D4A843' },
+    supplier_manager: { label: 'מנהל ספקים', icon: 'fa-store', color: '#0891B2' },
+    accountant: { label: 'חשב / הנה"ח', icon: 'fa-calculator', color: '#059669' },
+    support: { label: 'תמיכת לקוחות', icon: 'fa-life-ring', color: '#F59E0B' }
+};
+const TEAM_SHIFTS = {
+    morning: { label: 'בוקר', time: '06:00-14:00', color: '#F59E0B' },
+    afternoon: { label: 'צהריים', time: '14:00-22:00', color: '#2563EB' },
+    night: { label: 'לילה', time: '22:00-06:00', color: '#7C3AED' },
+    full: { label: 'יום מלא', time: '06:00-22:00', color: '#059669' },
+    oncall: { label: 'כוננות', time: '24/7', color: '#dc3545' }
+};
+
+function loadTeam() {
+    renderTeamStats();
+    renderTeamList();
+}
+
+function renderTeamStats() {
+    const members = DB.get('teamMembers');
+    const active = members.filter(m => m.status !== 'inactive');
+    const byRole = {};
+    active.forEach(m => { byRole[m.role] = (byRole[m.role] || 0) + 1; });
+    const el = document.getElementById('teamStats');
+    if (!el) return;
+    el.innerHTML = `
+        <div class="stat-card"><div class="stat-number">${members.length}</div><div class="stat-label">סה"כ חברי צוות</div></div>
+        <div class="stat-card" style="border-right:3px solid #059669;"><div class="stat-number">${active.length}</div><div class="stat-label">פעילים</div></div>
+        <div class="stat-card" style="border-right:3px solid #2563EB;"><div class="stat-number">${byRole['dispatcher'] || 0}</div><div class="stat-label">מוקדנים</div></div>
+        <div class="stat-card" style="border-right:3px solid #7C3AED;"><div class="stat-number">${byRole['field_manager'] || 0}</div><div class="stat-label">מנהלי שטח</div></div>`;
+}
+
+function addTeamMember() {
+    const name = document.getElementById('teamName').value.trim();
+    const phone = document.getElementById('teamPhone').value.trim();
+    const role = document.getElementById('teamRole').value;
+    const shift = document.getElementById('teamShift').value;
+    const email = document.getElementById('teamEmail').value.trim();
+    const password = document.getElementById('teamPassword').value.trim();
+    const notes = document.getElementById('teamNotes').value.trim();
+    if (!name || !phone) { alert('נא למלא שם וטלפון'); return; }
+
+    const perms = [];
+    document.querySelectorAll('.team-perm:checked').forEach(cb => perms.push(cb.value));
+
+    const member = {
+        id: 'TM-' + Date.now().toString().slice(-6),
+        name, phone, role, shift, email, password, notes,
+        permissions: perms,
+        status: 'active',
+        createdAt: new Date().toISOString()
+    };
+    DB.add('teamMembers', member);
+    ['teamName','teamPhone','teamEmail','teamPassword','teamNotes'].forEach(id => { document.getElementById(id).value = ''; });
+    loadTeam();
+}
+
+function toggleTeamStatus(id) {
+    const members = DB.get('teamMembers');
+    const m = members.find(x => x.id === id);
+    if (!m) return;
+    m.status = m.status === 'active' ? 'inactive' : 'active';
+    DB.set('teamMembers', members);
+    loadTeam();
+}
+
+function deleteTeamMember(id) {
+    if (!confirm('להסיר חבר צוות זה?')) return;
+    const members = DB.get('teamMembers').filter(m => m.id !== id);
+    DB.set('teamMembers', members);
+    loadTeam();
+}
+
+function renderTeamList() {
+    const members = DB.get('teamMembers');
+    const wrap = document.getElementById('teamList');
+    if (!wrap) return;
+    if (!members.length) {
+        wrap.innerHTML = '<div style="text-align:center;color:#888;padding:30px;font-size:14px;"><i class="fas fa-users" style="font-size:40px;color:#e0e0e0;display:block;margin-bottom:10px;"></i>אין חברי צוות עדיין</div>';
+        return;
+    }
+
+    wrap.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">' +
+        members.map(m => {
+            const role = TEAM_ROLES[m.role] || { label: m.role, icon: 'fa-user', color: '#666' };
+            const shift = TEAM_SHIFTS[m.shift] || { label: m.shift, time: '', color: '#666' };
+            const isActive = m.status === 'active';
+            const opacity = isActive ? '1' : '0.5';
+            const permLabels = {
+                orders: 'הזמנות', rides: 'נסיעות', couriers: 'שליחים', drivers: 'נהגים',
+                suppliers: 'ספקים', settlement: 'התחשבנויות', settings: 'הגדרות', analytics: 'אנליטיקה'
+            };
+            return `
+            <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);opacity:${opacity};transition:opacity 0.3s;">
+                <!-- Header -->
+                <div style="background:${role.color};padding:16px 20px;display:flex;align-items:center;gap:14px;">
+                    <div style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;">
+                        <i class="fas ${role.icon}"></i>
+                    </div>
+                    <div style="flex:1;color:#fff;">
+                        <div style="font-size:17px;font-weight:800;">${escapeHtml(m.name)}</div>
+                        <div style="font-size:12px;opacity:0.85;">${role.label}</div>
+                    </div>
+                    <div style="background:rgba(255,255,255,0.2);border-radius:8px;padding:4px 10px;font-size:11px;color:#fff;font-weight:600;">
+                        ${isActive ? '<i class="fas fa-circle" style="color:#34d399;font-size:8px;"></i> פעיל' : '<i class="fas fa-circle" style="color:#fca5a5;font-size:8px;"></i> לא פעיל'}
+                    </div>
+                </div>
+                <!-- Body -->
+                <div style="padding:16px 20px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                            <i class="fas fa-phone" style="color:${role.color};width:16px;"></i>
+                            <a href="tel:${m.phone.replace(/[^\d+]/g,'')}" style="color:#333;text-decoration:none;font-weight:600;">${escapeHtml(m.phone)}</a>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
+                            <i class="fas fa-clock" style="color:${shift.color};width:16px;"></i>
+                            <span>${shift.label} <span style="color:#999;font-size:11px;">${shift.time}</span></span>
+                        </div>
+                        ${m.email ? `<div style="display:flex;align-items:center;gap:8px;font-size:13px;grid-column:span 2;">
+                            <i class="fas fa-envelope" style="color:#999;width:16px;"></i>
+                            <span style="color:#666;">${escapeHtml(m.email)}</span>
+                        </div>` : ''}
+                    </div>
+                    <!-- Permissions -->
+                    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
+                        ${(m.permissions || []).map(p => `<span style="background:#f0f0f0;color:#555;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">${permLabels[p] || p}</span>`).join('')}
+                    </div>
+                    ${m.notes ? `<div style="font-size:12px;color:#888;margin-bottom:12px;"><i class="fas fa-sticky-note"></i> ${escapeHtml(m.notes)}</div>` : ''}
+                    <!-- Actions -->
+                    <div style="display:flex;gap:8px;border-top:1px solid #f0f0f0;padding-top:12px;">
+                        <button onclick="toggleTeamStatus('${m.id}')" style="flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;background:${isActive ? '#fef2f2' : '#f0fdf4'};color:${isActive ? '#dc3545' : '#059669'};">
+                            <i class="fas ${isActive ? 'fa-pause' : 'fa-play'}"></i> ${isActive ? 'השבת' : 'הפעל'}
+                        </button>
+                        <a href="tel:${m.phone.replace(/[^\d+]/g,'')}" style="flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:#f0fdf4;color:#059669;text-align:center;text-decoration:none;">
+                            <i class="fas fa-phone"></i> חייג
+                        </a>
+                        <button onclick="deleteTeamMember('${m.id}')" style="padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-size:12px;background:#f8f9fa;color:#999;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('') + '</div>';
 }
 
 // ============================================

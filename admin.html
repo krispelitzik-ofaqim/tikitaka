@@ -154,6 +154,9 @@
                 <a href="#" class="sidebar-link" onclick="showTab('supplierSettlement')">
                     <i class="fas fa-store"></i> התחשבנות ספקים
                 </a>
+                <a href="#" class="sidebar-link" onclick="showTab('team')">
+                    <i class="fas fa-users-cog"></i> ניהול צוות
+                </a>
                 <a href="#" class="sidebar-link" onclick="showTab('settings')">
                     <i class="fas fa-cog"></i> הגדרות
                 </a>
@@ -574,6 +577,105 @@
                         <h3><i class="fas fa-history"></i> היסטוריית תשלומים</h3>
                         <div id="supplierPaymentHistory"></div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Team Management Tab -->
+            <div id="tab-team" class="tab-content">
+                <div class="admin-section">
+                    <h2><i class="fas fa-users-cog"></i> ניהול צוות</h2>
+
+                    <!-- Team Stats -->
+                    <div class="stats-grid" id="teamStats"></div>
+
+                    <!-- Add Team Member -->
+                    <div style="background:#fff;border:2px solid #C41E2F;border-radius:14px;padding:20px;margin:20px 0;box-shadow:0 4px 12px rgba(196,30,47,0.1);">
+                        <h3 style="font-size:15px;margin-bottom:14px;color:#C41E2F;"><i class="fas fa-user-plus"></i> הוספת חבר צוות</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>שם מלא</label>
+                                <input type="text" id="teamName" required placeholder="ישראל ישראלי">
+                            </div>
+                            <div class="form-group">
+                                <label>טלפון / SIM</label>
+                                <input type="tel" id="teamPhone" required placeholder="050-0000000">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>תפקיד</label>
+                                <select id="teamRole">
+                                    <option value="admin">מנהל מערכת</option>
+                                    <option value="dispatcher" selected>מוקדן / דיספטצ'ר</option>
+                                    <option value="field_manager">מנהל שטח</option>
+                                    <option value="courier_manager">מנהל שליחים</option>
+                                    <option value="driver_manager">מנהל נהגי מונית</option>
+                                    <option value="supplier_manager">מנהל ספקים</option>
+                                    <option value="accountant">חשב / הנה"ח</option>
+                                    <option value="support">תמיכת לקוחות</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>משמרת</label>
+                                <select id="teamShift">
+                                    <option value="morning">בוקר (06:00-14:00)</option>
+                                    <option value="afternoon">צהריים (14:00-22:00)</option>
+                                    <option value="night">לילה (22:00-06:00)</option>
+                                    <option value="full" selected>יום מלא</option>
+                                    <option value="oncall">כוננות</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>אימייל</label>
+                                <input type="email" id="teamEmail" placeholder="name@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>סיסמת גישה ללוח ניהול</label>
+                                <input type="text" id="teamPassword" placeholder="השאר ריק אם לא צריך גישה">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>הרשאות</label>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;margin-top:4px;">
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="orders" checked> <i class="fas fa-box" style="color:#C41E2F;width:18px;"></i> הזמנות
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="rides" checked> <i class="fas fa-taxi" style="color:#D4A843;width:18px;"></i> נסיעות
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="couriers" checked> <i class="fas fa-motorcycle" style="color:#7C3AED;width:18px;"></i> שליחים
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="drivers" checked> <i class="fas fa-id-card" style="color:#059669;width:18px;"></i> נהגים
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="suppliers"> <i class="fas fa-store" style="color:#2563EB;width:18px;"></i> ספקים
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="settlement"> <i class="fas fa-handshake" style="color:#059669;width:18px;"></i> התחשבנויות
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="settings"> <i class="fas fa-cog" style="color:#6B7280;width:18px;"></i> הגדרות
+                                </label>
+                                <label style="display:flex;align-items:center;gap:6px;padding:8px;background:#f8f9fa;border-radius:8px;cursor:pointer;font-size:13px;">
+                                    <input type="checkbox" class="team-perm" value="analytics"> <i class="fas fa-chart-bar" style="color:#0891B2;width:18px;"></i> אנליטיקה
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>הערות</label>
+                            <input type="text" id="teamNotes" placeholder="מידע נוסף...">
+                        </div>
+                        <button class="btn btn-primary" onclick="addTeamMember()" style="background:#C41E2F;">
+                            <i class="fas fa-user-plus"></i> הוסף לצוות
+                        </button>
+                    </div>
+
+                    <!-- Team List -->
+                    <div id="teamList"></div>
                 </div>
             </div>
 
