@@ -74,6 +74,7 @@ function loadSettings() {
     document.getElementById('setDeliveryIntlKm').value = s.deliveryIntlKm !== undefined ? s.deliveryIntlKm : 0;
     document.getElementById('setDeliveryHeavy').value = s.deliveryHeavy !== undefined ? s.deliveryHeavy : 5;
     document.getElementById('setDeliveryUrgent').value = s.deliveryUrgent !== undefined ? s.deliveryUrgent : 50;
+    document.getElementById('setAdminUsername').value = s.adminUsername || 'admin';
     document.getElementById('setBankOwner').value = s.bankOwner || '';
     document.getElementById('setBankName').value = s.bankName || '';
     document.getElementById('setBankBranch').value = s.bankBranch || '';
@@ -153,6 +154,8 @@ function saveSettings() {
         s.servicesVisible[cb.dataset.key] = cb.checked;
     });
     const newPwd = document.getElementById('setAdminPwd').value.trim();
+    const adminUser = document.getElementById('setAdminUsername').value.trim();
+    if (adminUser) s.adminUsername = adminUser;
     if (newPwd) s.adminPassword = newPwd;
     const restorePwd = document.getElementById('setRestorePwd').value.trim();
     if (restorePwd) s.restorePassword = restorePwd;
@@ -4448,7 +4451,8 @@ let _draggedBlock = null;
 
 function initSettingsDragDrop() {
     const allBlocks = document.querySelectorAll('.settings-form [style*="cursor:grab"]');
-    allBlocks.forEach(block => {
+    allBlocks.forEach((block, idx) => {
+        if (!block.dataset.blockId) block.dataset.blockId = 'block-' + idx;
         block.draggable = true;
 
         block.addEventListener('dragstart', e => {
@@ -4463,6 +4467,7 @@ function initSettingsDragDrop() {
             document.querySelectorAll('.settings-block-over-top, .settings-block-over-bottom').forEach(el => {
                 el.classList.remove('settings-block-over-top', 'settings-block-over-bottom');
             });
+            saveBlockOrder();
         });
 
         block.addEventListener('dragover', e => {
@@ -4498,7 +4503,6 @@ function initSettingsDragDrop() {
         });
     });
 
-    // Allow dropping on columns too (for moving between columns)
     document.querySelectorAll('.settings-form > div').forEach(col => {
         col.addEventListener('dragover', e => {
             e.preventDefault();
@@ -4512,7 +4516,40 @@ function initSettingsDragDrop() {
             }
         });
     });
+
+    restoreBlockOrder();
 }
+
+function saveBlockOrder() {
+    const order = {};
+    document.querySelectorAll('.settings-form > div').forEach((col, colIdx) => {
+        const blocks = col.querySelectorAll('[data-block-id]');
+        blocks.forEach((block, blockIdx) => {
+            order[block.dataset.blockId] = { col: colIdx, pos: blockIdx };
+        });
+    });
+    localStorage.setItem('tikitaka_blockOrder', JSON.stringify(order));
+}
+
+function restoreBlockOrder() {
+    const saved = localStorage.getItem('tikitaka_blockOrder');
+    if (!saved) return;
+    try {
+        const order = JSON.parse(saved);
+        const cols = document.querySelectorAll('.settings-form > div');
+        if (cols.length < 2) return;
+        const sorted = Object.entries(order).sort((a, b) => {
+            if (a[1].col !== b[1].col) return a[1].col - b[1].col;
+            return a[1].pos - b[1].pos;
+        });
+        sorted.forEach(([blockId, pos]) => {
+            const block = document.querySelector(`[data-block-id="${blockId}"]`);
+            const col = cols[pos.col];
+            if (block && col) col.appendChild(block);
+        });
+    } catch (e) {}
+}
+
 setTimeout(initSettingsDragDrop, 500);
 
 checkAutoBackup();

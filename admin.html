@@ -52,14 +52,15 @@
 <body>
     <!-- Admin Login Gate -->
     <div id="adminGate" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#C41E2F,#8B1523);z-index:9999;align-items:center;justify-content:center;">
-        <div style="background:white;padding:40px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.3);width:90%;max-width:400px;text-align:center;">
+        <div style="background:white;padding:40px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.3);width:90%;max-width:420px;text-align:center;">
             <img src="images/logo.svg" alt="TikiTaka" style="height:60px;margin-bottom:16px;">
-            <h2 style="margin:0 0 8px 0;color:#333;">כניסת מנהל</h2>
-            <p style="color:#666;margin:0 0 24px 0;font-size:14px;">הכנס את סיסמת הניהול</p>
-            <input type="password" id="adminPwd" placeholder="סיסמה" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;margin-bottom:12px;direction:rtl;" onkeydown="if(event.key==='Enter')tryAdminLogin()">
-            <div id="adminPwdError" style="color:#dc3545;font-size:13px;margin-bottom:12px;display:none;">סיסמה שגויה</div>
-            <button onclick="tryAdminLogin()" style="width:100%;padding:12px;background:#C41E2F;color:white;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;">כניסה</button>
-            <p style="color:#999;font-size:12px;margin-top:16px;">סיסמת ברירת מחדל: admin</p>
+            <h2 style="margin:0 0 8px 0;color:#333;">כניסה ללוח ניהול</h2>
+            <p style="color:#666;margin:0 0 24px 0;font-size:14px;">הזן שם משתמש וסיסמה</p>
+            <input type="text" id="adminUser" placeholder="שם משתמש" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;margin-bottom:10px;direction:rtl;text-align:right;" onkeydown="if(event.key==='Enter')document.getElementById('adminPwd').focus()">
+            <input type="password" id="adminPwd" placeholder="סיסמה" style="width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;margin-bottom:12px;direction:rtl;" onkeydown="if(event.key==='Enter')tryAdminLogin()">
+            <div id="adminPwdError" style="color:#dc3545;font-size:13px;margin-bottom:12px;display:none;"></div>
+            <button onclick="tryAdminLogin()" style="width:100%;padding:14px;background:#C41E2F;color:white;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:background 0.2s;">כניסה</button>
+            <p style="color:#bbb;font-size:11px;margin-top:16px;">ברירת מחדל: admin / admin</p>
         </div>
     </div>
     <script>
@@ -68,26 +69,104 @@
             if (!authed) {
                 document.getElementById('adminGate').style.display = 'flex';
                 document.querySelector('.admin-layout').style.display = 'none';
-                setTimeout(() => document.getElementById('adminPwd').focus(), 100);
+                setTimeout(() => document.getElementById('adminUser').focus(), 100);
+            } else {
+                applyLoggedInUser();
             }
         });
+
         function tryAdminLogin() {
+            const username = (document.getElementById('adminUser').value || '').trim();
+            const password = document.getElementById('adminPwd').value;
+            const errEl = document.getElementById('adminPwdError');
+            if (!username || !password) {
+                errEl.textContent = 'נא למלא שם משתמש וסיסמה';
+                errEl.style.display = 'block';
+                return;
+            }
+
             const settings = JSON.parse(localStorage.getItem('tikitaka_settings') || '{}');
-            const password = settings.adminPassword || 'admin';
-            const input = document.getElementById('adminPwd').value;
-            if (input === password) {
-                sessionStorage.setItem('adminAuthed', '1');
-                document.getElementById('adminGate').style.display = 'none';
-                document.querySelector('.admin-layout').style.display = '';
-                if (typeof initDashMap === 'function') {
-                    setTimeout(() => initDashMap(), 100);
-                }
-            } else {
-                document.getElementById('adminPwdError').style.display = 'block';
+            const adminPwd = settings.adminPassword || 'admin';
+            const adminName = settings.adminUsername || 'admin';
+
+            // Check admin first
+            if ((username === adminName || username === 'admin') && password === adminPwd) {
+                loginAs({ id: 'admin', name: username, role: 'admin', permissions: ['all'] });
+                return;
+            }
+
+            // Check team members
+            const team = JSON.parse(localStorage.getItem('tikitaka_teamMembers') || '[]');
+            const member = team.find(m => m.status === 'active' && m.password && (m.name === username || m.phone === username) && m.password === password);
+            if (member) {
+                loginAs({ id: member.id, name: member.name, role: member.role, permissions: member.permissions || [] });
+                return;
+            }
+
+            errEl.textContent = 'שם משתמש או סיסמה שגויים';
+            errEl.style.display = 'block';
+        }
+
+        function loginAs(user) {
+            sessionStorage.setItem('adminAuthed', '1');
+            sessionStorage.setItem('adminUser', JSON.stringify(user));
+            document.getElementById('adminGate').style.display = 'none';
+            document.querySelector('.admin-layout').style.display = '';
+            applyLoggedInUser();
+            if (typeof initDashMap === 'function') {
+                setTimeout(() => initDashMap(), 100);
             }
         }
+
+        function getLoggedInUser() {
+            try { return JSON.parse(sessionStorage.getItem('adminUser') || 'null'); }
+            catch (e) { return null; }
+        }
+
+        function applyLoggedInUser() {
+            const user = getLoggedInUser();
+            if (!user) return;
+            const badge = document.getElementById('adminBadge');
+            if (badge) {
+                const roleLabels = {
+                    admin: 'מנהל מערכת', dispatcher: 'מוקדן', field_manager: 'מנהל שטח',
+                    courier_manager: 'מנהל שליחים', driver_manager: 'מנהל נהגים',
+                    supplier_manager: 'מנהל ספקים', accountant: 'חשב', support: 'תמיכה'
+                };
+                badge.innerHTML = '<i class="fas fa-user-circle" style="margin-left:4px;"></i> ' + user.name;
+                badge.title = roleLabels[user.role] || user.role;
+            }
+            const userInfo = document.getElementById('adminUserInfo');
+            if (userInfo) userInfo.style.display = 'flex';
+
+            // Apply permissions — hide tabs user doesn't have access to
+            if (user.permissions && !user.permissions.includes('all')) {
+                const permToTabs = {
+                    orders: ['orders'],
+                    rides: ['rides'],
+                    couriers: ['couriers', 'courierSettlement'],
+                    drivers: ['drivers', 'settlement'],
+                    suppliers: ['suppliers', 'supplierSettlement'],
+                    settlement: ['settlement', 'courierSettlement', 'supplierSettlement', 'accounting'],
+                    settings: ['settings', 'team'],
+                    analytics: ['analytics']
+                };
+                const allowedTabs = new Set(['dashboard']);
+                user.permissions.forEach(p => {
+                    (permToTabs[p] || []).forEach(t => allowedTabs.add(t));
+                });
+                document.querySelectorAll('.sidebar-link[onclick]').forEach(link => {
+                    const match = link.getAttribute('onclick').match(/showTab\('(\w+)'\)/);
+                    if (match && !allowedTabs.has(match[1])) {
+                        link.style.display = 'none';
+                    }
+                });
+            }
+        }
+
         function adminLogout() {
             sessionStorage.removeItem('adminAuthed');
+            sessionStorage.removeItem('adminUser');
             location.reload();
         }
     </script>
@@ -97,7 +176,10 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <img src="images/logo.svg" alt="TikiTaka" class="logo-img" style="height:60px;width:auto;">
-                <span class="admin-badge">ניהול</span>
+                <span class="admin-badge" id="adminBadge"><i class="fas fa-user-circle"></i> ניהול</span>
+                <div id="adminUserInfo" style="display:none;justify-content:center;margin-top:8px;">
+                    <button onclick="adminLogout()" style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:11px;font-family:inherit;cursor:pointer;"><i class="fas fa-sign-out-alt"></i> התנתק</button>
+                </div>
             </div>
             <nav class="sidebar-nav">
                 <!-- ראשי -->
@@ -782,13 +864,17 @@
                         <h3 style="margin-top:0;color:#dc3545;"><i class="fas fa-lock"></i> אבטחה</h3>
                         <div class="form-row">
                             <div class="form-group">
-                                <label>סיסמת ניהול חדשה</label>
-                                <input type="password" id="setAdminPwd" placeholder="השאר ריק כדי לא לשנות">
+                                <label>שם משתמש מנהל</label>
+                                <input type="text" id="setAdminUsername" placeholder="admin">
                             </div>
                             <div class="form-group">
-                                <label>סיסמת שחזור מגיבוי</label>
-                                <input type="password" id="setRestorePwd" placeholder="השאר ריק כדי לא לשנות">
+                                <label>סיסמת מנהל</label>
+                                <input type="password" id="setAdminPwd" placeholder="השאר ריק כדי לא לשנות">
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>סיסמת שחזור מגיבוי</label>
+                            <input type="password" id="setRestorePwd" placeholder="השאר ריק כדי לא לשנות">
                         </div>
                         </div>
 
