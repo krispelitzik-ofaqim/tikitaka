@@ -74,6 +74,13 @@ function loadSettings() {
     document.getElementById('setDeliveryIntlKm').value = s.deliveryIntlKm !== undefined ? s.deliveryIntlKm : 0;
     document.getElementById('setDeliveryHeavy').value = s.deliveryHeavy !== undefined ? s.deliveryHeavy : 5;
     document.getElementById('setDeliveryUrgent').value = s.deliveryUrgent !== undefined ? s.deliveryUrgent : 50;
+    document.getElementById('setBankOwner').value = s.bankOwner || '';
+    document.getElementById('setBankName').value = s.bankName || '';
+    document.getElementById('setBankBranch').value = s.bankBranch || '';
+    document.getElementById('setBankAccount').value = s.bankAccount || '';
+    document.getElementById('setBankIBAN').value = s.bankIBAN || '';
+    document.getElementById('setBankTransferFreq').value = s.bankTransferFreq || 'weekly';
+    document.getElementById('setBankTransferDay').value = s.bankTransferDay !== undefined ? s.bankTransferDay : '0';
     const services = s.servicesVisible || {};
     document.querySelectorAll('.svc-toggle').forEach(cb => {
         const key = cb.dataset.key;
@@ -167,6 +174,13 @@ function saveSettings() {
     s.deliveryIntlKm = parseFloat(document.getElementById('setDeliveryIntlKm').value) || 0;
     s.deliveryHeavy = parseFloat(document.getElementById('setDeliveryHeavy').value) || 5;
     s.deliveryUrgent = parseFloat(document.getElementById('setDeliveryUrgent').value) || 50;
+    s.bankOwner = document.getElementById('setBankOwner').value.trim();
+    s.bankName = document.getElementById('setBankName').value;
+    s.bankBranch = document.getElementById('setBankBranch').value.trim();
+    s.bankAccount = document.getElementById('setBankAccount').value.trim();
+    s.bankIBAN = document.getElementById('setBankIBAN').value.trim();
+    s.bankTransferFreq = document.getElementById('setBankTransferFreq').value;
+    s.bankTransferDay = document.getElementById('setBankTransferDay').value;
     saveSettingsObj(s);
     document.getElementById('setAdminPwd').value = '';
     document.getElementById('setRestorePwd').value = '';
@@ -4429,6 +4443,42 @@ function checkAutoBackup() {
         localStorage.setItem('tikitaka_autoBackupSize', json.length.toString());
     }
 }
+
+function initSettingsDragDrop() {
+    document.querySelectorAll('.settings-form > div').forEach(col => {
+        const blocks = col.querySelectorAll('[style*="cursor:grab"]');
+        blocks.forEach(block => {
+            block.draggable = true;
+            block.addEventListener('dragstart', e => {
+                e.dataTransfer.effectAllowed = 'move';
+                block.classList.add('settings-block-dragging');
+                block._dragParent = col;
+            });
+            block.addEventListener('dragend', () => {
+                block.classList.remove('settings-block-dragging');
+                document.querySelectorAll('.settings-block-over').forEach(el => el.classList.remove('settings-block-over'));
+            });
+            block.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                block.classList.add('settings-block-over');
+            });
+            block.addEventListener('dragleave', () => {
+                block.classList.remove('settings-block-over');
+            });
+            block.addEventListener('drop', e => {
+                e.preventDefault();
+                block.classList.remove('settings-block-over');
+                const dragging = col.querySelector('.settings-block-dragging') || document.querySelector('.settings-block-dragging');
+                if (dragging && dragging !== block) {
+                    const parent = block.parentNode;
+                    parent.insertBefore(dragging, block);
+                }
+            });
+        });
+    });
+}
+setTimeout(initSettingsDragDrop, 500);
 
 checkAutoBackup();
 setInterval(checkAutoBackup, 5 * 60 * 1000);

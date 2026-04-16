@@ -422,7 +422,7 @@
     color: #333;
 }
 
-.settings-form input,
+.settings-form input:not([type="checkbox"]):not([type="radio"]),
 .settings-form select {
     width: 100%;
     padding: 14px 18px;
@@ -433,14 +433,20 @@
     direction: rtl;
     background: #fff;
     transition: border-color 0.2s, box-shadow 0.2s;
-    -webkit-appearance: none;
 }
 
-.settings-form input:focus,
+.settings-form input:not([type="checkbox"]):not([type="radio"]):focus,
 .settings-form select:focus {
     border-color: var(--primary);
     outline: none;
     box-shadow: 0 0 0 3px rgba(196,30,47,0.1);
+}
+
+.settings-form input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    accent-color: #C41E2F;
+    cursor: pointer;
 }
 
 .settings-form .form-row {
@@ -813,6 +819,18 @@
 
 .admin-table tr:last-child td {
     border-bottom: none;
+}
+
+/* Draggable blocks */
+.settings-block-dragging {
+    opacity: 0.5;
+    border: 2px dashed #C41E2F !important;
+}
+.settings-block-over {
+    border-top: 3px solid #C41E2F !important;
+}
+[style*="cursor:grab"]:active {
+    cursor: grabbing !important;
 }
 
 /* Smooth scrollbar */
